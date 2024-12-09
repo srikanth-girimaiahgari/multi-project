@@ -1,0 +1,27 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Java
+      apt:
+        name: default-jre
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Deploy Docker container
+      docker_container:
+        name: music-band-booking
+        image: music-band-booking:latest
+        state: started
+        ports:
+          - "8080:8080"
