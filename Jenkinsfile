@@ -60,6 +60,9 @@ pipeline {
                 cd project2
                 pwd
                 ls -l
+                mvn clean package
+                podman build -t project2
+                podman run -d -p 3100:8080 localhost/project2:latest
                 '''
                 // sh 'mvn clean package'
                 // // sh 'podman build -t project2 .'
