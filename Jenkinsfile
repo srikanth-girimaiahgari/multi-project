@@ -56,8 +56,8 @@ pipeline {
             steps {
                 sh '''
                 # Install Podman
-                apt update
-                apt install -y podman
+                echo "Rajini@123" | sudo -S apt update
+                echo "Rajini@123" | sudo apt install -y podman
                 '''
                 sh 'mvn clean package'
                 sh 'podman build -t project2 .'
