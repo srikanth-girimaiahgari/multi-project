@@ -54,11 +54,8 @@ pipeline {
                 environment name: 'project2_CHANGED', value: 'true'
             }
             steps {
-                sh '''
-                # Install Podman
-                echo "Rajini@123" | sudo -S apt update
-                echo "Rajini@123" | sudo apt install -y podman
-                '''
+
+                sh "cd project2"
                 sh 'mvn clean package'
                 sh 'podman build -t project2 .'
                 sh "podman run -d -p 3100:8080 localhost/project2:latest"
