@@ -71,7 +71,7 @@ pipeline {
                 chmod +x precheck.sh
                 ./precheck.sh
                 podman build -t project2 .
-                podman run -d -p 3100:8080 localhost/project2:latest
+                podman run -d --name project2 -p 3100:8080 localhost/project2:latest
                 '''
                 // sh 'mvn clean package'
                 // // sh 'podman build -t project2 .'

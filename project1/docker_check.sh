@@ -8,6 +8,7 @@ if [ -n "$container_status" ]; then
     # If the container is running, stop it
     echo "Container '$container_name' is running. Stopping it..."
     docker stop $container_status
+    docker rm $container_status
     echo "Container '$container_name' stopped."
 else
     # If the container is not running, check and remove the container if it exists
