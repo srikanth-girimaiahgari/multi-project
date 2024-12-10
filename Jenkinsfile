@@ -43,6 +43,7 @@ pipeline {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
 
                         sh '''
+                        cd project1
                         pwd
                         chmod +x docker_check.sh
                         ./docker_check.sh
@@ -67,6 +68,8 @@ pipeline {
                 pwd
                 ls -l
                 mvn clean package
+                chmod +x precheck.sh
+                ./precheck.sh
                 podman build -t project2 .
                 podman run -d -p 3100:8080 localhost/project2:latest
                 '''
