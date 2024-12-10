@@ -38,13 +38,16 @@ pipeline {
                 sh "npm install"
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh 'pwd'
-                        sh 'chmod +x docker_check.sh'
-                        sh './docker_check.sh'
-                        sh "docker build -t youtube-clone ."
-                        sh "docker tag youtube-clone sr79979/youtube-clone:latest"
-                        sh "docker push sr79979/youtube-clone:latest"
-                        sh "docker run -d --name youtube-clone -p 3000:3000 sr79979/youtube-clone:latest"
+
+                        sh '''
+                        pwd
+                        chmod +x docker_check.sh
+                        ./docker_check.sh
+                        docker build -t youtube-clone .
+                        docker tag youtube-clone sr79979/youtube-clone:latest
+                        docker push sr79979/youtube-clone:latest
+                        docker run -d --name youtube-clone -p 3000:3000 sr79979/youtube-clone:latest
+                        '''
                     }
                 }
             }
@@ -66,7 +69,7 @@ pipeline {
                 '''
                 // sh 'mvn clean package'
                 // // sh 'podman build -t project2 .'
-                // sh "podman run -d -p 3100:8080 localhost/project2:latest"
+                //sh 'podman run -d -p 3100:8080 localhost/project2:latest"
             }
         }
     }
