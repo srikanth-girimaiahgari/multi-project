@@ -50,12 +50,13 @@ pipeline {
             }
         }
         stage('Build Project2') {
-            when {
-                environment name: 'project2_CHANGED', value: 'true'
-            }
+            // when {
+            //     environment name: 'project2_CHANGED', value: 'true'
+            // }
             steps {
 
                 sh "cd project2"
+                sh "pwd"
                 sh 'mvn clean package'
                 sh 'podman build -t project2 .'
                 sh "podman run -d -p 3100:8080 localhost/project2:latest"
