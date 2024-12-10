@@ -35,7 +35,10 @@ pipeline {
                 environment name: 'project1_CHANGED', value: 'true'
             }
             steps {
-                sh "npm install"
+                sh '''
+                cd project1
+                npm install
+                '''
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
 
@@ -53,9 +56,9 @@ pipeline {
             }
         }
         stage('Build Project2') {
-            // when {
-            //     environment name: 'project2_CHANGED', value: 'true'
-            // }
+            when {
+                environment name: 'project2_CHANGED', value: 'true'
+            }
             steps {
 
                 sh '''
@@ -64,7 +67,7 @@ pipeline {
                 pwd
                 ls -l
                 mvn clean package
-                podman build -t project2
+                podman build -t project2 .
                 podman run -d -p 3100:8080 localhost/project2:latest
                 '''
                 // sh 'mvn clean package'

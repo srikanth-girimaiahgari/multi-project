@@ -7,6 +7,6 @@ resource "aws_instance" "app_instance" {
   instance_type = "t2.micro"
 
   tags = {
-    Name = "MusicBandBookingApplication"
+    Name = "MusicBandBookingApp"
   }
 }
