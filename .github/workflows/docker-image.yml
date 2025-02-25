@@ -15,15 +15,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      working-directory: project1
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-    - uses: actions/checkout@v4
+      # working-directory: project1
+      run: |
+        cd project1
+        docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        docker images
     - name: Build the Podman image
-      working-directory: project2
-      run: podman build . --file Dockerfile --tag my-image-name:$(date +%s)
-    - name: check docker images
-      working-directory: project2
-      run: docker images
-    - name: check Podman images
-      working-directory: project2
-      run: podman images
+      # working-directory: project2
+      run: |
+        cd project2
+        mvn --version
+        podman build . --file Dockerfile --tag my-image-name:$(date +%s)
+        podman images
