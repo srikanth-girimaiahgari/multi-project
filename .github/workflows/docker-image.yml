@@ -23,6 +23,12 @@ jobs:
         mvn clean package
         ls -lart
         
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app.jar
+        path: target/*.jar
+        
   Docker:
 
     runs-on: ubuntu-latest
@@ -34,6 +40,12 @@ jobs:
         cd project1
         docker build . --file Dockerfile --tag my-image-name:$(date +%s)
         docker images
+        
+    - name: Upload Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: app.jar
+        path: target  
         
     - name: Build the Podman image
       run: |
