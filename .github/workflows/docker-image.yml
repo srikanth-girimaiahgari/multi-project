@@ -13,8 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v3
     - name: Maven Build
       run: |
+        pwd
+        ls -lart
         cd project2
         mvn --version
         mvn clean package
