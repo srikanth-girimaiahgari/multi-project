@@ -42,8 +42,10 @@ jobs:
     - name: Build the Docker image
       run: |
         cd project1
-        docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        docker build . --file Dockerfile --tag youtube-clone:latest
         docker images
+        docker run -d --name youtube-clone -p 3000:3000 youtube-clone:latest
+        docker ps
         
     - name: Upload Build Artifact
       uses: actions/download-artifact@v4
@@ -55,5 +57,7 @@ jobs:
       run: |
         cd project2
         ls -lart
-        podman build . --file Dockerfile --tag my-image-name:$(date +%s)
+        podman build . --file Dockerfile --tag booking:latest
         podman images
+        podman run -d --name project2 -p 3100:8080 booking:latest
+        docker ps
