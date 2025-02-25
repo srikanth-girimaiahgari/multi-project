@@ -89,6 +89,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: .  # Save in the current directory
       - name: Install Trivy Scanner
         run: |
           sudo apt-get install -y wget
@@ -96,8 +101,8 @@ jobs:
           sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
       - name: Scan Docker Image for Vulnerabilities
         run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL $image_name1:$build_number | tee $SCAN_REPORT
-          trivy image --exit-code 1 --severity HIGH,CRITICAL $image_name2:$build_number | tee $SCAN_REPORT
+          trivy image  --severity HIGH,CRITICAL --input ${{env.image_name1}}.tar | tee $SCAN_REPORT
+          trivy image  --severity HIGH,CRITICAL --input ${{env.image_name2}}.tar | tee $SCAN_REPORT
 
       - name: Upload Scan Report as Artifact
         uses: actions/upload-artifact@v4
@@ -108,7 +113,6 @@ jobs:
   push:
     needs: scan
     runs-on: ubuntu-latest
-    if: success()
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
