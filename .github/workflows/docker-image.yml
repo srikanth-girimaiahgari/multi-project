@@ -82,7 +82,7 @@ jobs:
           ${{ env.image_name1 }}.tar
   push:
     needs: docker
-    runs-on: ubuntu-${{ env.build_number }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
