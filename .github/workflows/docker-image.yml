@@ -2,9 +2,17 @@ name: build-pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - main
+
+env:
+  repo: sr799791
+  image_name1: youtube-clone
+  image_name2: band-booking
+  build_number: ${{github.run_number}}
 
 jobs:
 
@@ -42,9 +50,9 @@ jobs:
     - name: Build the Docker image
       run: |
         cd project1
-        docker build . --file Dockerfile --tag youtube-clone:latest
+        docker build . --file Dockerfile --tag ${{env.image_name1}}:${{env.build_number}}
         docker images
-        docker run -d --name youtube-clone -p 3000:3000 youtube-clone:latest
+        docker run -d --name ${{env.image_name1}} -p 3000:3000 ${{env.image_name1}}:${{env.build_number}}
         docker ps
         
     - name: Download Artifact
@@ -57,43 +65,43 @@ jobs:
       run: |
         cd project2
         ls -lart
-        podman build . --file Dockerfile --tag booking:latest
+        podman build . --file Dockerfile --tag ${{env.image_name2}}:${{env.build_number}}
         podman images
-        podman run -d --name project2 -p 3100:8080 booking:latest
+        podman run -d --name project2 -p 3100:8080 ${{env.image_name2}}:${{env.build_number}}
         podman ps
     - name: Save Docker Image as Artifact
       run: |
-        docker save youtube-clone:latest -o youtube-clone.tar
-        podman save booking:latest -o booking.tar
+        docker save ${{env.image_name1}}:${{env.build_number}} -o ${{env.image_name1}}.tar
+        podman save ${{env.image_name2}}:${{env.build_number}} -o ${{env.image_name2}}.tar
     - name: Upload Docker Image Artifact
       uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
-          booking.tar 
-          youtube-clone.tar
+          ${{env.image_name2}}.tar 
+          ${{env.image_name1}}.tar
   push:
     needs: docker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{env.build_number}}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Download Docker Image Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image
           path: .  # Save in the current directory
       - name: Load Docker Image
         run: |
-          docker load -i youtube-clone.tar
-          podman load -i booking.tar
+          docker load -i ${{env.image_name1}}.tar
+          podman load -i ${{env.image_name2}}.tar
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | podman login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
-          docker tag youtube-clone sr79979/youtube-clone:latest
-          docker push sr79979/youtube-clone:latest
-          podman tag booking sr79979/booking:latest
-          podman push sr79979/booking:latest
+          docker tag ${{env.image_name1}} sr79979/${{env.image_name1}}:${{env.build_number}}
+          docker push sr79979/${{env.image_name1}}:${{env.build_number}}
+          podman tag ${{env.image_name2}} sr79979/${{env.image_name2}}:${{env.build_number}}
+          podman push sr79979/${{env.image_name2}}:${{env.build_number}}
