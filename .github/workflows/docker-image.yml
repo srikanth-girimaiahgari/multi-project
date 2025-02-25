@@ -57,6 +57,3 @@ jobs:
         ls -lart
         podman build . --file Dockerfile --tag my-image-name:$(date +%s)
         podman images
-
-    - name: List files
-      run: ls -R target
