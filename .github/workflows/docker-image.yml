@@ -103,7 +103,7 @@ jobs:
           echo "${{secrets.DOCKERHUB_PASSWORD}}" | podman login -u "${{secrets.DOCKERHUB_USERNAME}}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
-          docker tag ${{env.image_name1}} ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
+          docker tag ${{env.image_name1}}:${{env.build_number}} ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
           docker push ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
-          podman tag ${{env.image_name2}} ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
+          podman tag localhost/${{env.image_name2}}:${{env.build_number}} ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
           podman push ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
