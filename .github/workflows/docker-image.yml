@@ -60,4 +60,4 @@ jobs:
         podman build . --file Dockerfile --tag booking:latest
         podman images
         podman run -d --name project2 -p 3100:8080 booking:latest
-        docker ps
+        podman ps
