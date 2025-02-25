@@ -24,6 +24,9 @@ jobs:
         ls -lart
         ls -lart target
         
+    - name: check files
+      run: ls -lart target
+      
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
