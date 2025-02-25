@@ -13,9 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: checkout Repository
     - uses: actions/checkout@v4
- 
     - name: Maven Build
       run: |
         pwd
@@ -30,9 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: checkout
     - uses: actions/checkout@v4
-    
     - name: Build the Docker image
       run: |
         cd project1
