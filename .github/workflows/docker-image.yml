@@ -22,12 +22,13 @@ jobs:
         mvn --version
         mvn clean package
         ls -lart
+        ls -lart target
         
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app.jar
-        path: target/*.jar
+        path: target/music-band-booking-1.0.0.jar
         
   Docker:
 
