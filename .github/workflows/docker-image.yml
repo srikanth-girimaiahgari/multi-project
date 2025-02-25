@@ -66,7 +66,7 @@ jobs:
         docker save youtube-clone:latest -o youtube-clone.tar
         podman save booking:latest -o booking.tar
     - name: Upload Docker Image Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
