@@ -47,7 +47,7 @@ jobs:
         docker run -d --name youtube-clone -p 3000:3000 youtube-clone:latest
         docker ps
         
-    - name: Upload Build Artifact
+    - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
         name: app.jar
@@ -61,3 +61,39 @@ jobs:
         podman images
         podman run -d --name project2 -p 3100:8080 booking:latest
         podman ps
+    - name: Save Docker Image as Artifact
+      run: |
+        docker save youtube-clone:latest -o youtube-clone.tar
+        podman save booking:latest -o booking.tar
+    - name: Upload Docker Image Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-image
+        path: |
+          booking.tar 
+          youtube-clone.tar
+  push:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: .  # Save in the current directory
+      - name: Load Docker Image
+        run: |
+          docker load -i youtube-clone.tar
+          podman load -i booking.tar
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | podman login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - name: Tag and Push Docker Image
+        run: |
+          docker tag youtube-clone sr79979/youtube-clone:latest
+          docker push sr79979/youtube-clone:latest
+          podman tag booking sr79979/booking:latest
+          podman push sr79979/booking:latest
