@@ -9,10 +9,10 @@ on:
       - main
 
 env:
-  repo: sr799791
+  repo: sr79979
   image_name1: youtube-clone
   image_name2: band-booking
-  build_number: ${{github.run_number}}
+  build_number: ${{ github.run_number }}
 
 jobs:
 
@@ -50,9 +50,9 @@ jobs:
     - name: Build the Docker image
       run: |
         cd project1
-        docker build . --file Dockerfile --tag ${{env.image_name1}}:${{env.build_number}}
+        docker build . --file Dockerfile --tag ${{ env.image_name1 }}:${{ env.build_number }}
         docker images
-        docker run -d --name ${{env.image_name1}} -p 3000:3000 ${{env.image_name1}}:${{env.build_number}}
+        docker run -d --name ${{ env.image_name1 }} -p 3000:3000 ${{ env.image_name1 }}:${{ env.build_number }}
         docker ps
         
     - name: Download Artifact
@@ -65,24 +65,24 @@ jobs:
       run: |
         cd project2
         ls -lart
-        podman build . --file Dockerfile --tag ${{env.image_name2}}:${{env.build_number}}
+        podman build . --file Dockerfile --tag ${{ env.image_name2 }}:${{ env.build_number }}
         podman images
-        podman run -d --name project2 -p 3100:8080 ${{env.image_name2}}:${{env.build_number}}
+        podman run -d --name project2 -p 3100:8080 ${{ env.image_name2 }}:${{ env.build_number }}
         podman ps
     - name: Save Docker Image as Artifact
       run: |
-        docker save ${{env.image_name1}}:${{env.build_number}} -o ${{env.image_name1}}.tar
-        podman save ${{env.image_name2}}:${{env.build_number}} -o ${{env.image_name2}}.tar
+        docker save ${{ env.image_name1 }}:${{ env.build_number }} -o ${{ env.image_name1 }}.tar
+        podman save ${{ env.image_name2 }}:${{ env.build_number }} -o ${{ env.image_name2 }}.tar
     - name: Upload Docker Image Artifact
       uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
-          ${{env.image_name2}}.tar 
-          ${{env.image_name1}}.tar
+          ${{ env.image_name2 }}.tar 
+          ${{ env.image_name1 }}.tar
   push:
     needs: docker
-    runs-on: ubuntu-${{env.build_number}}
+    runs-on: ubuntu-${{ env.build_number }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -93,15 +93,15 @@ jobs:
           path: .  # Save in the current directory
       - name: Load Docker Image
         run: |
-          docker load -i ${{env.image_name1}}.tar
-          podman load -i ${{env.image_name2}}.tar
+          docker load -i ${{ env.image_name1 }}.tar
+          podman load -i ${{ env.image_name2 }}.tar
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | podman login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
-          docker tag ${{env.image_name1}} sr79979/${{env.image_name1}}:${{env.build_number}}
-          docker push sr79979/${{env.image_name1}}:${{env.build_number}}
-          podman tag ${{env.image_name2}} sr79979/${{env.image_name2}}:${{env.build_number}}
-          podman push sr79979/${{env.image_name2}}:${{env.build_number}}
+          docker tag ${{ env.image_name1 }} ${{ env.repo }}/${{ env.image_name1 }}:${{ env.build_number }}
+          docker push ${{ env.repo }}/${{ env.image_name1 }}:${{ env.build_number }}
+          podman tag ${{ env.image_name2 }} ${{ env.repo }}/${{ env.image_name2 }}:${{ env.build_number }}
+          podman push ${{ env.repo }}/${{ env.image_name2 }}:${{ env.build_number }}
