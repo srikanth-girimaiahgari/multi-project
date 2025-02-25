@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: checkout Repository
     - uses: actions/checkout@v3
-      with:
-       clean: false
+ 
     - name: Maven Build
       run: |
         pwd
@@ -24,6 +24,12 @@ jobs:
         mvn --version
         mvn clean package
         ls -lart
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app.jar
+        path: target/*.jar
  
   Docker:
 
@@ -36,9 +42,17 @@ jobs:
         cd project1
         docker build . --file Dockerfile --tag my-image-name:$(date +%s)
         docker images
+    - name: Upload Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: app.jar
+        path: target  
+
     - name: Build the Podman image
       run: |
         cd project2
         ls -lart
         podman build . --file Dockerfile --tag my-image-name:$(date +%s)
         podman images
+    - name: List files
+      run: ls -R target
