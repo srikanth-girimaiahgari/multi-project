@@ -36,12 +36,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: checkout
     - uses: actions/checkout@v4
+    
     - name: Build the Docker image
       run: |
         cd project1
         docker build . --file Dockerfile --tag my-image-name:$(date +%s)
         docker images
+
     - name: Upload Build Artifact
       uses: actions/download-artifact@v3
       with:
@@ -54,5 +57,6 @@ jobs:
         ls -lart
         podman build . --file Dockerfile --tag my-image-name:$(date +%s)
         podman images
+
     - name: List files
       run: ls -R target
