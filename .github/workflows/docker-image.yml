@@ -18,7 +18,8 @@ jobs:
       run: |
         cd project2
         mvn --version
-        mvn clean package 
+        mvn clean package
+        ls -lart
  
   Docker:
 
@@ -34,5 +35,6 @@ jobs:
     - name: Build the Podman image
       run: |
         cd project2
+        ls -lart
         podman build . --file Dockerfile --tag my-image-name:$(date +%s)
         podman images
