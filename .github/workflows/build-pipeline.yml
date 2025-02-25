@@ -106,7 +106,6 @@ jobs:
           path: $SCAN_REPORT
 
   push:
-    needs: docker
     needs: scan
     runs-on: ubuntu-latest
     steps:
