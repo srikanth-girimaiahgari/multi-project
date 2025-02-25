@@ -7,12 +7,14 @@ on:
   pull_request:
     branches: 
       - main
+  workflow_dispatch
 
 env:
   repo: sr79979
   image_name1: youtube-clone
   image_name2: band-booking
   build_number: ${{github.run_number}}
+  SCAN_REPORT: scan_report.md
 
 jobs:
 
@@ -78,10 +80,34 @@ jobs:
       with:
         name: docker-image
         path: |
-          ${{env.image_name2}}.tar 
-          ${{env.image_name1}}.tar
+          ${{env.image_name1}}.tar 
+          ${{env.image_name2}}.tar
+  
+  scan:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Install Trivy Scanner
+        run: |
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.0_Linux-64bit.deb
+      - name: Scan Docker Image for Vulnerabilities
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL $image_name1:$build_number | tee $SCAN_REPORT
+          trivy image --exit-code 1 --severity HIGH,CRITICAL $image_name2:$build_number | tee $SCAN_REPORT
+
+      - name: Upload Scan Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan
+          path: $SCAN_REPORT
+
   push:
     needs: docker
+    needs: scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -107,3 +133,19 @@ jobs:
           docker push ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
           podman tag localhost/${{env.image_name2}}:${{env.build_number}} ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
           podman push ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
+
+      - name: Update README with Image Path & Scan Report
+       run: |
+         PROJECT1_IMAGE_PATH="${{env.repo}}/${{env.image_name2}}:${{env.build_number}}"
+         PROJECT2_IMAGE_PATH="${{env.repo}}/${{env.image_name1}}:${{env.build_number}}"
+         echo "![](https://img.shields.io/badge/Docker-Published-blue)" >> README.md
+         echo "## Latest Docker Images" >> README.md
+         echo "project1 Image:** \`PROJECT1_IMAGE_PATH\`" >> README.md
+         echo "Project2 Image:** \`PROJECT2_IMAGE_PATH\`" >> README.md
+         echo "## Vulnerability Scan Report" >> README.md
+         cat $SCAN_REPORT >> README.md
+         git config --global user.name "github-actions"
+         git config --global user.email "github-actions@github.com"
+         git add README.md
+         git commit -m "Update README with Docker Image & Scan Report"
+         git push
