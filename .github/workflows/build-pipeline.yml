@@ -92,8 +92,8 @@ jobs:
       - name: Install Trivy Scanner
         run: |
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-ARM64.deb
-          sudo dpkg -i trivy_0.59.1_Linux-ARM64.deb
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
       - name: Scan Docker Image for Vulnerabilities
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL $image_name1:$build_number | tee $SCAN_REPORT
