@@ -135,7 +135,7 @@ jobs:
           podman push ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
 
       - name: Update README with Image Path & Scan Report
-       run: |
+        run: |
          PROJECT1_IMAGE_PATH="${{env.repo}}/${{env.image_name2}}:${{env.build_number}}"
          PROJECT2_IMAGE_PATH="${{env.repo}}/${{env.image_name1}}:${{env.build_number}}"
          echo "![](https://img.shields.io/badge/Docker-Published-blue)" >> README.md
