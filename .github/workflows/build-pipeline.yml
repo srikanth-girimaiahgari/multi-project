@@ -63,8 +63,8 @@ jobs:
           docker build . --file Dockerfile --tag $project:${{env.build_number}}
           docker save $project:${{env.build_number}} -o $project.tar
         done
-      - name: Upload Docker Image Artifact
-      uses: actions/upload-artifact@v4
+    - name: Upload Docker Image Artifact
+    - uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
@@ -74,7 +74,7 @@ jobs:
       run: ls -lart project2/target
   
   scan:
-    needs: docker-build
+    needs: build
     runs-on: ubuntu-latest
     outputs:
       scan_results: ${{ steps.set-output.outputs.scan_results }}
@@ -92,7 +92,7 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.deb
           sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
       - name: Scan Docker Image for Vulnerabilities
-        id :set-output
+        id : set-output
         run: |
           CHANGED_PROJECTS="${{ needs.docker-build.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
