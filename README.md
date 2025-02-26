@@ -1,7 +1,5 @@
-[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/docker-image.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/docker-image.yml)
+## Latest Docker Images
+Project 1 Image: `sr79979/youtube-clone:41`
+Project 2 Image: `sr79979/band-booking:41`
+## Vulnerability Scan Report
 
-DevOps Repo is Repo to test out the multi project builds
-
-Project 1 - Youtube-clone app
-
-Project 2 - Band-Booking app
