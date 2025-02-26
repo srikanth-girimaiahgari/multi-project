@@ -189,10 +189,10 @@ jobs:
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
-            echo "## $project Latest Docker Images" > README.md
-            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" > README.md
-            echo "## $project Vulnerability Scan Report" > README.md
-            cat scan_summary_${project}.md > README.md
+            echo "## $project Latest Docker Images" >> README.md
+            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
+            echo "## $project Vulnerability Scan Report" >> README.md
+            cat scan_summary_${project}.md >> README.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
