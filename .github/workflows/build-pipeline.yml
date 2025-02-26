@@ -201,7 +201,6 @@ jobs:
          
       - name: Update README with Image Path & Scan Report
         run: |
-          ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
