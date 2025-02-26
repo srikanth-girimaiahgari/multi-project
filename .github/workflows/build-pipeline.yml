@@ -52,6 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build
         run: |
+          set -x
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           for project in $CHANGED_PROJECTS; do
