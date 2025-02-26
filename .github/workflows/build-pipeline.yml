@@ -17,7 +17,7 @@ env:
   image_name1: youtube-clone
   image_name2: band-booking
   build_number: ${{ github.run_number }}
-  PROJECTS: "project1 project2"
+  PROJECTS: "youtube-clone band-booking"
 
 jobs:
   detect-changes:
@@ -60,7 +60,7 @@ jobs:
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           for project in $CHANGED_PROJECTS; do
             echo "🔹 Processing $project"
-            if [ "$project" == "project2" ]; then
+            if [ "$project" == "band-booking" ]; then
               echo "🔧 Running Maven Build for $project"
               cd $project
               mvn clean package
@@ -188,10 +188,11 @@ jobs:
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
-            echo "## $project Latest Docker Images" >> README.md
-            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
-            echo "## $project Vulnerability Scan Report" >> README.md
-            cat scan_summary_${project}.md >> README.md
+            echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
+            echo "## $project Latest Docker Images" > README.md
+            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" > README.md
+            echo "## $project Vulnerability Scan Report" > README.md
+            cat scan_summary_${project}.md > README.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
