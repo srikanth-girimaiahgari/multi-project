@@ -99,7 +99,7 @@ jobs:
       - name: Scan Docker Image for Vulnerabilities
         id: scan-results
         run: |
-          CHANGED_PROJECTS="${{ needs.build.outputs.changed_projects }}"
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           SCAN_RESULTS=""
           for project in $CHANGED_PROJECTS; do
@@ -114,7 +114,9 @@ jobs:
             else
               SCAN_RESULTS+="$project: ✅ No high or critical vulnerabilities.\n"
             fi
+            ls -lart
           done
+          cat 
           ls -lart
           echo "SCAN_RESULTS=$SCAN_RESULTS" >> $GITHUB_ENV
           echo "scan_results=$SCAN_RESULTS" >> $GITHUB_OUTPUT
