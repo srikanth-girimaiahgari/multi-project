@@ -191,10 +191,11 @@ jobs:
             echo "option1"
             grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}'
             echo "option2"
-            grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}'
+            grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' '
             TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}')
             echo $TOTAL
             UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}')
+            echo $UNKNOWN
             LOW=$(grep "LOW:" scan_summary_${project}.md | awk '{print $2}')
             MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk '{print $2}')
             HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk '{print $2}')
