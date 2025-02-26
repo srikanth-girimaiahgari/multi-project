@@ -72,8 +72,10 @@ jobs:
           name: docker-image
           path: "*.tar"
       - name: Check files
-        run: ls -lart project-2/target
-
+        run: |
+          ls -lart
+          docker images
+          
   scan:
     needs: build
     runs-on: ubuntu-latest
