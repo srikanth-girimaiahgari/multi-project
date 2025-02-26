@@ -2,10 +2,10 @@ name: build-pipeline
 
 on:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
-    branches: 
+    branches:
       - main
   workflow_dispatch:
 
@@ -20,12 +20,20 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed_projects: ${{ steps.set-output.outputs.changed_projects }}
+      changed_projects: ${{ steps.set-changed-projects.outputs.changed_projects }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full history is available
+      
+      - name: Debug - Show Git Diff
+        run: |
+          echo "Checking changes between ${{ github.event.before }} and ${{ github.sha }}"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+      
       - name: Detect Changes in Projects
-        id: set-output
+        id: set-changed-projects
         run: |
           CHANGED_PROJECTS=""
           for project in $PROJECTS; do
@@ -34,7 +42,6 @@ jobs:
             fi
           done
           echo "Changed Projects: $CHANGED_PROJECTS"
-          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
 
   build:
