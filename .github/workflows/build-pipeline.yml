@@ -64,6 +64,7 @@ jobs:
             cd $project
             echo "🐳 Building Docker Image for $project"
             docker build . --file Dockerfile --tag $project:${{ env.build_number }}
+            echo "Converting the image into Tar file"
             docker save $project:${{ env.build_number }} -o $project.tar
           done
       - name: Upload Docker Image Artifact
@@ -75,7 +76,7 @@ jobs:
         run: |
           ls -lart
           docker images
-          
+
   scan:
     needs: build
     runs-on: ubuntu-latest
