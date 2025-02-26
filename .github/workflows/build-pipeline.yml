@@ -61,7 +61,9 @@ jobs:
               echo "🔧 Running Maven Build for $project"
               cd $project
               mvn clean package
+              cd ..
             fi
+            cd $project
             echo "🐳 Building Docker Image for $project"
             docker build . --file Dockerfile --tag $project:${{ env.build_number }}
             cd ..
