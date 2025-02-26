@@ -180,8 +180,8 @@ jobs:
           echo "Project 2 Image: \`${{ env.repo }}/${{ env.image_name2 }}:${{ env.build_number }}\`" >> README.md
           echo "## Vulnerability Scan Report" >> README.md
           echo "${{ needs.scan.outputs.scan_results }}" >> README.md
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          git config --global user.name "srikanth"
+          git config --global user.email "srikanth.girimaiahgari@gmail.com"
           git add README.md
           git commit -m "Update README with Docker Image & Scan Report"
           git push
