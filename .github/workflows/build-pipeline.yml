@@ -119,8 +119,8 @@ jobs:
             echo "🛡️ Scanning $project"
             trivy image --format table --input $project.tar --output scan_${project}.md || true
             grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md > scan_summary_${project}.md || echo "No vulnerabilities found!" > scan_summary_${project}.md
-            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md || awk '{sum+=$1} END {print sum+0}')
-            CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md || awk '{sum+=$1} END {print sum+0}')
+            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
+            CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]; then
               SCAN_RESULTS+="$project: ❌ High or Critical vulnerabilities found.\n"
               grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md
