@@ -110,10 +110,12 @@ jobs:
             CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md || echo "0")
             if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]; then
               SCAN_RESULTS+="$project: ❌ High or Critical vulnerabilities found.\n"
+              grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md
             else
               SCAN_RESULTS+="$project: ✅ No high or critical vulnerabilities.\n"
             fi
           done
+          ls -lart
           echo "SCAN_RESULTS=$SCAN_RESULTS" >> $GITHUB_ENV
           echo "scan_results=$SCAN_RESULTS" >> $GITHUB_OUTPUT
       - name: Upload Scan Report as Artifact
@@ -121,7 +123,6 @@ jobs:
         with:
           name: security-scan
           path: "scan_*.md"
-
   push:
     needs: scan
     runs-on: ubuntu-latest
@@ -135,14 +136,11 @@ jobs:
           path: .
       - name: Load Docker Image
         run: |
-          docker load -i ${{ env.image_name1 }}.tar
+          docker load -i $project.tar
           docker images
-          podman load -i ${{ env.image_name2 }}.tar
-          podman images
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | podman login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
           CHANGED_PROJECTS="${{ needs.build.outputs.changed_projects }}"
@@ -153,6 +151,7 @@ jobs:
             fi
             docker tag $project:${{ env.build_number }} ${{ env.repo }}/$project:${{ env.build_number }}
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
+           done
       - name: Update README with Image Path & Scan Report
         run: |
           echo "## Latest Docker Images" > README.md
