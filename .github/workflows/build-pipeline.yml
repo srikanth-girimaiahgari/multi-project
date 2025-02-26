@@ -44,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed_projects: ${{ steps.set-output.outputs.changed_projects }}
-
     steps:
     - uses: actions/checkout@v4
     - name: Build
