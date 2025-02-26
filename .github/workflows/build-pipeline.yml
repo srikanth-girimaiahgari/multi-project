@@ -188,6 +188,9 @@ jobs:
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
+            total=$(grep "Total:" scan_summary_${project}.md)
+            grep "UNKNOWN:" scan_summary_${project}.md
+            echo $total
             TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}')
             UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}')
             LOW=$(grep "LOW:" scan_summary_${project}.md | awk '{print $2}')
@@ -196,7 +199,7 @@ jobs:
             CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk '{print $2}')
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
             cat scan_summary_${project}.md >> README.md
-            echo "## 🛡️ $project Vulnerability Scan Report
+            echo -e "## 🛡️ $project Vulnerability Scan Report
                   | Severity   | Count |
                   |------------|------:|
                   | 🔵 UNKNOWN  | ${UNKNOWN} |
@@ -204,7 +207,8 @@ jobs:
                   | 🟡 MEDIUM   | ${MEDIUM} |
                   | 🔴 HIGH     | ${HIGH} |
                   | 🚨 CRITICAL | ${CRITICAL} |
-                  _Total Vulnerabilities: **${TOTAL}**_" >> README.md
+                  _Total Vulnerabilities: **${TOTAL}**_
+            " >> README.md
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
           done
