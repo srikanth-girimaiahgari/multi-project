@@ -194,6 +194,13 @@ jobs:
             MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk '{print $2}')
             HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk '{print $2}')
             CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk '{print $2}')
+            echo ${UNKNOWN}
+            echo ${HIGH}
+            echo ${CRITICAL}
+            echo "direct"
+            echo $UNKNOWN
+            echo $HIGH
+            echo $CRITICAL
             cat <<EOL >> temp_readme.md
             ## 🛡️ $project Vulnerability Scan Report
             | Severity   | Count |
