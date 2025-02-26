@@ -100,7 +100,7 @@ jobs:
         id: scan-results
         run: |
           set -x
-          echo ${{ needs.build.outputs.changed_projects }}"
+          echo ${{ needs.build.outputs.changed_projects }}
           echo ${{ needs.detect-changes.outputs.changed_projects }}
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
