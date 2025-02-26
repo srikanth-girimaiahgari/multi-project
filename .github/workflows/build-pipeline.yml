@@ -201,20 +201,18 @@ jobs:
             CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
             echo $CRITICAL
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
-            
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
-
-            echo -e "## 🛡️ $project Vulnerability Scan Report" >> README.md
-            echo -e  "   \| Severity   | Count |\ " >> README.md
-            echo -e  "   \|------------|------:|\ " >> README.md
-            echo -e  "   \| 🔵 UNKNOWN  | ${UNKNOWN} |\ " >> README.md
-            echo -e  "   \| 🟢 LOW      | ${LOW} |\ " >> README.md
-            echo -e  "   \| 🟡 MEDIUM   | ${MEDIUM} |\ " >> README.md
-            echo -e  "   \| 🔴 HIGH     | ${HIGH} |\ " >> README.md
-            echo -e  "   \| 🚨 CRITICAL | ${CRITICAL} |\ " >> README.md
-            echo -e  "   \_Total Vulnerabilities: **${TOTAL}**_ \" >> README.md
-            
+            echo -e "## 🛡️ $project Vulnerability Scan Report
+            \| Severity   | Count |\
+            \|------------|------:|\ 
+            \| 🔵 UNKNOWN  | ${UNKNOWN} |\ 
+            \| 🟢 LOW      | ${LOW} |\ 
+            \| 🟡 MEDIUM   | ${MEDIUM} |\ 
+            \| 🔴 HIGH     | ${HIGH} |\ 
+            \| 🚨 CRITICAL | ${CRITICAL} |\ 
+            _Total Vulnerabilities: **${TOTAL}**_ 
+            " >> README.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
