@@ -57,7 +57,7 @@ jobs:
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           for project in $CHANGED_PROJECTS; do
             echo "🔹 Processing $project"
-            if [ "$project" == "project-2" ]; then
+            if [ "$project" == "project2" ]; then
               echo "🔧 Running Maven Build for $project"
               cd $project
               mvn clean package
