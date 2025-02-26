@@ -1,10 +1,10 @@
-# Use a base image with JDK
+# Use a base image with JDKs
 FROM openjdk:11-jdk-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the jar file into the containers
+# Copy the jar file into the container
 COPY target/music-band-booking-1.0.0.jar app.jar
 
 # Expose the application port
