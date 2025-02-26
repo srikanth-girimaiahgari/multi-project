@@ -201,22 +201,19 @@ jobs:
             echo $UNKNOWN
             echo $HIGH
             echo $CRITICAL
-            cat <<EOL >> temp_readme.md
-            ## 🛡️ $project Vulnerability Scan Report
-            | Severity   | Count |
-            |------------|------:|
-            | 🔵 UNKNOWN  | ${UNKNOWN} |
-            | 🟢 LOW      | ${LOW} |
-            | 🟡 MEDIUM   | ${MEDIUM} |
-            | 🔴 HIGH     | ${HIGH} |
-            | 🚨 CRITICAL | ${CRITICAL} |
-            _Total Vulnerabilities: **${TOTAL}**_
-            EOL
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
+            echo "## $project Vulnerability Scan Report" >> README.md
+            echo "## 🛡️ $project Vulnerability Scan Report
+                  | Severity   | Count |
+                  |------------|------:|
+                  | 🔵 UNKNOWN  | ${UNKNOWN} |
+                  | 🟢 LOW      | ${LOW} |
+                  | 🟡 MEDIUM   | ${MEDIUM} |
+                  | 🔴 HIGH     | ${HIGH} |
+                  | 🚨 CRITICAL | ${CRITICAL} |
+                  _Total Vulnerabilities: **${TOTAL}**_" >> README.md
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
-            echo "## $project Vulnerability Scan Report" >> README.md
-            cat temp_readme.md >> README.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
