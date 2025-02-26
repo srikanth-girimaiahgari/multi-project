@@ -1,4 +1,4 @@
-# Use a base image with JDKs
+# Use a base image with JDK
 FROM openjdk:11-jdk-slim
 
 # Set the working directory

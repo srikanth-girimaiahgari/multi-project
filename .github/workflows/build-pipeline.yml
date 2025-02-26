@@ -182,17 +182,51 @@ jobs:
             docker tag $project:${{ env.build_number }} ${{ env.repo }}/$project:${{ env.build_number }}
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
            done
+      - name: Extract Vulnerability Data from scan_summary
+       run: |
+         TOTAL=$(grep "Total:" scan_summary | awk '{print $2}')
+         UNKNOWN=$(grep "UNKNOWN:" scan_summary | awk '{print $2}')
+         LOW=$(grep "LOW:" scan_summary | awk '{print $2}')
+         MEDIUM=$(grep "MEDIUM:" scan_summary | awk '{print $2}')
+         HIGH=$(grep "HIGH:" scan_summary | awk '{print $2}')
+         CRITICAL=$(grep "CRITICAL:" scan_summary | awk '{print $2}')
+         echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+         echo "UNKNOWN=$UNKNOWN" >> $GITHUB_ENV
+         echo "LOW=$LOW" >> $GITHUB_ENV
+         echo "MEDIUM=$MEDIUM" >> $GITHUB_ENV
+         echo "HIGH=$HIGH" >> $GITHUB_ENV
+         echo "CRITICAL=$CRITICAL" >> $GITHUB_ENV
+     - name: Update README
+       run: |
+         
       - name: Update README with Image Path & Scan Report
         run: |
           ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
+            TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}')
+            UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}')
+            LOW=$(grep "LOW:" scan_summary_${project}.md | awk '{print $2}')
+            MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk '{print $2}')
+            HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk '{print $2}')
+            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk '{print $2}')
+            cat <<EOF >> temp_readme.md
+            ## 🛡️ $project Vulnerability Scan Report
+            | Severity   | Count |
+            |------------|------:|
+            | 🔵 UNKNOWN  | ${UNKNOWN} |
+            | 🟢 LOW      | ${LOW} |
+            | 🟡 MEDIUM   | ${MEDIUM} |
+            | 🔴 HIGH     | ${HIGH} |
+            | 🚨 CRITICAL | ${CRITICAL} |
+            _Total Vulnerabilities: **${TOTAL}**_
+            EOF
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
-            echo "## $project Docker Images" >> README.md
+            echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
             echo "## $project Vulnerability Scan Report" >> README.md
-            cat scan_summary_${project}.md >> README.md
+            cat temp_readme.md >> README.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
