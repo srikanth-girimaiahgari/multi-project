@@ -189,17 +189,17 @@ jobs:
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
           for project in $CHANGED_PROJECTS; do
-            TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}')
+            TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
             echo $TOTAL
-            UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
+            UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $UNKNOWN
-            LOW=$(grep "LOW:" scan_summary_${project}.md | awk -F'LOW: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
+            LOW=$(grep "LOW:" scan_summary_${project}.md | awk -F'LOW: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $LOW
-            MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk -F'MEDIUM: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
+            MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk -F'MEDIUM: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $MEDIUM
-            HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk -F'HIGH: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
+            HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk -F'HIGH: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $HIGH
-            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | awk '{print $1}' | grep -o '[0-9]\+' | tr '\n' ' ')
+            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | awk '{print $1}' | grep -o '[0-9]\+' | tr '\n' ',' | sed 's/,$//')
             echo $CRITICAL
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
