@@ -67,6 +67,7 @@ jobs:
             docker build . --file Dockerfile --tag $project:${{ env.build_number }}
             echo "Converting the image into Tar file"
             docker save $project:${{ env.build_number }} -o $project.tar
+            ls -lart
           done
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
