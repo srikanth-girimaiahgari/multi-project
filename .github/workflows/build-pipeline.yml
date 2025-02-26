@@ -84,7 +84,7 @@ jobs:
           docker images
 
   scan:
-    needs: build
+    needs: [detect-changes, build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -99,6 +99,10 @@ jobs:
           sudo apt-get install -y wget
           wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.deb
           sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
+      
+      - name: Debug show detected changed projects
+        run: |
+          echo "Received changed projects: ${{ needs.detect-changes.outputs.changed_projects }}"
       - name: Scan Docker Image for Vulnerabilities
         id: scan-results
         run: |
@@ -107,6 +111,10 @@ jobs:
           echo "detect:${{ needs.detect-changes.outputs.changed_projects }}"
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
+          if [ -z "$CHANGED_PROJECTS" ]; then
+            echo "No Changed projects detected."
+            exit 0
+          fi
           SCAN_RESULTS=""
           for project in $CHANGED_PROJECTS; do
             echo "🛡️ Scanning $project"
