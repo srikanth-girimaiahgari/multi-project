@@ -64,7 +64,7 @@ jobs:
           docker save $project:${{env.build_number}} -o $project.tar
         done
     - name: Upload Docker Image Artifact
-    - uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
