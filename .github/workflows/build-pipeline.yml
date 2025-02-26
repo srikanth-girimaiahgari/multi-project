@@ -194,7 +194,7 @@ jobs:
             MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk '{print $2}')
             HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk '{print $2}')
             CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk '{print $2}')
-            cat <<EOF >> temp_readme.md
+            cat <<EOL >> temp_readme.md
             ## 🛡️ $project Vulnerability Scan Report
             | Severity   | Count |
             |------------|------:|
@@ -204,7 +204,7 @@ jobs:
             | 🔴 HIGH     | ${HIGH} |
             | 🚨 CRITICAL | ${CRITICAL} |
             _Total Vulnerabilities: **${TOTAL}**_
-            EOF
+            EOL
             echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
