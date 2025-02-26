@@ -204,13 +204,13 @@ jobs:
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
             echo -e "## 🛡️ $project Vulnerability Scan Report
-            \| Severity   | Count |\
-            \|------------|------:|\ 
-            \| 🔵 UNKNOWN  | ${UNKNOWN} |\ 
-            \| 🟢 LOW      | ${LOW} |\ 
-            \| 🟡 MEDIUM   | ${MEDIUM} |\ 
-            \| 🔴 HIGH     | ${HIGH} |\ 
-            \| 🚨 CRITICAL | ${CRITICAL} |\ 
+            | Severity   | Count |
+            |------------|------:|
+            | 🔵 UNKNOWN  | ${UNKNOWN} |
+            | 🟢 LOW      | ${LOW} |
+            | 🟡 MEDIUM   | ${MEDIUM} |
+            | 🔴 HIGH     | ${HIGH} |
+            | 🚨 CRITICAL | ${CRITICAL} |
             _Total Vulnerabilities: **${TOTAL}**_ 
             " >> README.md
           done
