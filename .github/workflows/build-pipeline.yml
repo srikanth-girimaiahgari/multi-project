@@ -138,9 +138,9 @@ jobs:
         with:
           name: security-scan
           path: "scan_*.md"
-          
+
   push:
-    needs: scan
+    needs: [detect-changes, scan]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -152,14 +152,17 @@ jobs:
           path: .
       - name: Load Docker Image
         run: |
-          docker load -i $project.tar
-          docker images
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          for project in $CHANGED_PROJECTS; do
+            docker load -i $project.tar
+            docker images
+          done
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
-          CHANGED_PROJECTS="${{ needs.build.outputs.changed_projects }}"
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           for project in $CHANGED_PROJECTS; do
             if echo "${{ needs.scan.outputs.scan_results }}" | grep -q "$project: ❌"; then
               echo "⏩ Skipping push for $project due to vulnerabilities."
