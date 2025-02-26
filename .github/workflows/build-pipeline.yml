@@ -181,26 +181,10 @@ jobs:
             fi
             docker tag $project:${{ env.build_number }} ${{ env.repo }}/$project:${{ env.build_number }}
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
-           done
-      - name: Extract Vulnerability Data from scan_summary
-       run: |
-         TOTAL=$(grep "Total:" scan_summary | awk '{print $2}')
-         UNKNOWN=$(grep "UNKNOWN:" scan_summary | awk '{print $2}')
-         LOW=$(grep "LOW:" scan_summary | awk '{print $2}')
-         MEDIUM=$(grep "MEDIUM:" scan_summary | awk '{print $2}')
-         HIGH=$(grep "HIGH:" scan_summary | awk '{print $2}')
-         CRITICAL=$(grep "CRITICAL:" scan_summary | awk '{print $2}')
-         echo "TOTAL=$TOTAL" >> $GITHUB_ENV
-         echo "UNKNOWN=$UNKNOWN" >> $GITHUB_ENV
-         echo "LOW=$LOW" >> $GITHUB_ENV
-         echo "MEDIUM=$MEDIUM" >> $GITHUB_ENV
-         echo "HIGH=$HIGH" >> $GITHUB_ENV
-         echo "CRITICAL=$CRITICAL" >> $GITHUB_ENV
-     - name: Update README
-       run: |
-         
+           done  
       - name: Update README with Image Path & Scan Report
         run: |
+          ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
