@@ -14,77 +14,71 @@ env:
   image_name1: youtube-clone
   image_name2: band-booking
   build_number: ${{github.run_number}}
+  PROJECTS: "project-1 project-2"
 
 jobs:
+  
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_projects: ${{ steps.set-output.outputs.changed_projects }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Detect Changes in Projects
+        id: set-output
+        run: |
+          CHANGED_PROJECTS=""
+          for project in $PROJECTS; do
+            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "^$project/"; then
+              CHANGED_PROJECTS+="$project "
+            fi
+          done
+
+          echo "Changed Projects: $CHANGED_PROJECTS"
+          echo "::set-output name=changed_projects::$CHANGED_PROJECTS"
 
   build:
-
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed_projects != ''
     runs-on: ubuntu-latest
+    outputs:
+      changed_projects: ${{ steps.set-output.outputs.changed_projects }}
 
     steps:
     - uses: actions/checkout@v4
-    - name: Maven Build
+    - name: Build
+      id: set-output
       run: |
-        pwd
-        ls -lart
-        cd project2
-        mvn --version
-        mvn clean package
-        ls -lart
-        ls -lart target
-        
-    - name: check files
-      run: ls -lart project2/target
-      
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app.jar
-        path: project2/target/music-band-booking-1.0.0.jar
-        
-  Docker:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: |
-        cd project1
-        docker build . --file Dockerfile --tag ${{env.image_name1}}:${{env.build_number}}
-        docker images
-        docker run -d --name ${{env.image_name1}} -p 3000:3000 ${{env.image_name1}}:${{env.build_number}}
-        docker ps
-        
-    - name: Download Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: app.jar
-        path: project2/target  
-        
-    - name: Build the Podman image
-      run: |
-        cd project2
-        ls -lart
-        podman build . --file Dockerfile --tag ${{env.image_name2}}:${{env.build_number}}
-        podman images
-        podman run -d --name project2 -p 3100:8080 ${{env.image_name2}}:${{env.build_number}}
-        podman ps
-    - name: Save Docker Image as Artifact
-      run: |
-        docker save ${{env.image_name1}}:${{env.build_number}} -o ${{env.image_name1}}.tar
-        podman save ${{env.image_name2}}:${{env.build_number}} -o ${{env.image_name2}}.tar
-    - name: Upload Docker Image Artifact
+        CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+        echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
+        for project in $CHANGED_PROJECTS; do
+          echo "🔹 Processing $project"
+          if [ "$project" == "project-2" ]; then
+            echo "🔧 Running Maven Build for $project"
+            cd $project
+            mvn clean package
+          fi
+          cd $project
+          echo "🐳 Building Docker Image for $project"
+          docker build . --file Dockerfile --tag $project:${{env.build_number}}
+          docker save $project:${{env.build_number}} -o $project.tar
+        done
+      - name: Upload Docker Image Artifact
       uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: |
-          ${{env.image_name1}}.tar 
-          ${{env.image_name2}}.tar
+          $project.tar 
+        
+    - name: check files
+      run: ls -lart project2/target
   
   scan:
-    needs: docker
+    needs: docker-build
     runs-on: ubuntu-latest
+    outputs:
+      scan_results: ${{ steps.set-output.outputs.scan_results }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -99,15 +93,35 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.deb
           sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
       - name: Scan Docker Image for Vulnerabilities
+        id :set-output
         run: |
-          trivy image  --severity HIGH,CRITICAL --input ${{env.image_name1}}.tar | tee scan_report.md
-          trivy image  --severity HIGH,CRITICAL --input ${{env.image_name2}}.tar | tee scan_report.md
+          CHANGED_PROJECTS="${{ needs.docker-build.outputs.changed_projects }}"
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
+          SCAN_RESULTS=""
+          for project in $CHANGED_PROJECTS; do
+            echo "🛡️ Scanning $project"
+            trivy image --format table --input $project.tar --output scan_${project}.md || true
+            echo "📌 Extracting Vulnerability Summary"
+            grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md > scan_summary_${project}.md || echo "No vulnerabilities found!" > scan_summary_${project}.md
+            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md || echo "0")
+            CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md || echo "0")
+            if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]; then
+              SCAN_RESULTS+="$project: ❌ High or Critical vulnerabilities found.\n"
+              grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md > scan_summary_${project}.md
+            else
+              SCAN_RESULTS+="$project: ✅ No high or critical vulnerabilities.\n"
+            fi
+          done
+          echo -e "Scan Results:\n$SCAN_RESULTS"
+          echo "::set-output name=scan_results::$SCAN_RESULTS"
 
       - name: Upload Scan Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: security-scan
-          path: scan_report.md
+          path: |
+            scan_${project}.md
+            scan_summary_${project}.md
 
   push:
     needs: scan
@@ -132,6 +146,12 @@ jobs:
           echo "${{secrets.DOCKERHUB_PASSWORD}}" | podman login -u "${{secrets.DOCKERHUB_USERNAME}}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
+          CHANGED_PROJECTS="${{ needs.docker-build.outputs.changed_projects }}"
+          for project in $CHANGED_PROJECTS; do
+            if echo "${{ needs.scan-images.outputs.scan_results }}" | grep -q "$project: ❌"; then
+              echo "⏩ Skipping push for $project due to vulnerabilities."
+              continue
+            fi
           docker tag ${{env.image_name1}}:${{env.build_number}} ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
           docker push ${{env.repo}}/${{env.image_name1}}:${{env.build_number}}
           podman tag localhost/${{env.image_name2}}:${{env.build_number}} ${{env.repo}}/${{env.image_name2}}:${{env.build_number}}
@@ -142,6 +162,7 @@ jobs:
          PROJECT1_IMAGE_PATH="${{env.repo}}/${{env.image_name2}}:${{env.build_number}}"
          PROJECT2_IMAGE_PATH="${{env.repo}}/${{env.image_name1}}:${{env.build_number}}"
          echo "![](https://img.shields.io/badge/Docker-Published-blue)" >> README.md
+         echo -e "${{ needs.scan-images.outputs.scan_results }}" >> README.md
          echo "## Latest Docker Images" >> README.md
          echo "project1 Image:** \`PROJECT1_IMAGE_PATH\`" >> README.md
          echo "Project2 Image:** \`PROJECT2_IMAGE_PATH\`" >> README.md
