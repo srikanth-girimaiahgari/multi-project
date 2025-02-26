@@ -14,7 +14,7 @@ env:
   image_name1: youtube-clone
   image_name2: band-booking
   build_number: ${{ github.run_number }}
-  PROJECTS: "project-1 project-2"
+  PROJECTS: "project1 project2"
 
 jobs:
   detect-changes:
