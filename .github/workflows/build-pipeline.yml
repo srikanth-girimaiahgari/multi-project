@@ -138,12 +138,7 @@ jobs:
         with:
           name: security-scan
           path: "scan_*.md"
-      - name: Upload Docker Image Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: "*.tar"
-
+          
   push:
     needs: scan
     runs-on: ubuntu-latest
