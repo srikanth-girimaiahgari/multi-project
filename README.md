@@ -18,4 +18,4 @@ Total: 51 (UNKNOWN: 0, LOW: 1, MEDIUM: 22, HIGH: 25, CRITICAL: 3)
 51**_
   
 ## band-booking Docker Image
-Image: `sr79979/band-booking:55`
+Image: `sr79979/band-booking:56`
