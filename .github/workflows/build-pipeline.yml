@@ -65,6 +65,7 @@ jobs:
             cd $project
             echo "🐳 Building Docker Image for $project"
             docker build . --file Dockerfile --tag $project:${{ env.build_number }}
+            cd ..
             echo "Converting the image into Tar file"
             docker save $project:${{ env.build_number }} -o $project.tar
             ls -lart
