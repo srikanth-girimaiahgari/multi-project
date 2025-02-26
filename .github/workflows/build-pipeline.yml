@@ -153,6 +153,11 @@ jobs:
       - name: Download Docker Image Artifact
         uses: actions/download-artifact@v4
         with:
+          name: security-scan
+          path: .
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
           name: docker-image
           path: .
       - name: Load Docker Image
@@ -179,6 +184,7 @@ jobs:
            done
       - name: Update README with Image Path & Scan Report
         run: |
+          ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
