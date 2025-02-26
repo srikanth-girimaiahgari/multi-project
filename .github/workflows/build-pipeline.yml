@@ -69,6 +69,10 @@ jobs:
             docker save $project:${{ env.build_number }} -o $project.tar
             ls -lart
           done
+                  
+          echo "Changed Projects: $CHANGED_PROJECTS"
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
+
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -99,8 +103,8 @@ jobs:
         id: scan-results
         run: |
           set -x
-          echo ${{ needs.build.outputs.changed_projects }}
-          echo ${{ needs.detect-changes.outputs.changed_projects }}
+          echo "build:${{ needs.build.outputs.changed_projects }}"
+          echo "detect:${{ needs.detect-changes.outputs.changed_projects }}"
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
           SCAN_RESULTS=""
