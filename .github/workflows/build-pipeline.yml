@@ -191,7 +191,7 @@ jobs:
             echo "option1"
             grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}'
             echo "option2"
-            grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' '
+            unknown=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
             TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{print $2}')
             echo $TOTAL
             UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk '{print $2}')
