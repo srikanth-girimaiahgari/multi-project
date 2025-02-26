@@ -168,6 +168,7 @@ jobs:
       - name: Tag and Push Docker Image
         run: |
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           for project in $CHANGED_PROJECTS; do
             if echo "${{ needs.scan.outputs.scan_results }}" | grep -q "$project: ❌"; then
               echo "⏩ Skipping push for $project due to vulnerabilities."
@@ -178,11 +179,14 @@ jobs:
            done
       - name: Update README with Image Path & Scan Report
         run: |
-          echo "## Latest Docker Images" > README.md
+          echo "## Latest Docker Images" >> README.md
           echo "Project 1 Image: \`${{ env.repo }}/${{ env.image_name1 }}:${{ env.build_number }}\`" >> README.md
+
           echo "Project 2 Image: \`${{ env.repo }}/${{ env.image_name2 }}:${{ env.build_number }}\`" >> README.md
+
           echo "## Vulnerability Scan Report" >> README.md
-          echo "${{ needs.scan.outputs.scan_results }}" >> README.md
+          cat scan_summary_${project}.md >> README.md
+
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add README.md
