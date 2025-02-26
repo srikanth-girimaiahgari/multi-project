@@ -187,6 +187,7 @@ jobs:
           ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
+          echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
           for project in $CHANGED_PROJECTS; do
             TOTAL=$(grep "Total:" scan_summary_${project}.md | awk -F'TOTAL: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
             echo $TOTAL
@@ -198,9 +199,8 @@ jobs:
             echo $MEDIUM
             HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk -F'HIGH: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
             echo $HIGH
-            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ')
+            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | grep -o '[0-9]\+' | tr '\n' ' ')
             echo $CRITICAL
-            echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
             echo -e "## 🛡️ $project Vulnerability Scan Report
@@ -211,7 +211,7 @@ jobs:
             | 🟡 MEDIUM   | ${MEDIUM} |
             | 🔴 HIGH     | ${HIGH} |
             | 🚨 CRITICAL | ${CRITICAL} |
-            _Total Vulnerabilities: **${TOTAL}**_ 
+            | Total Vulnerabilities | ${TOTAL} | 
             " >> README.md
           done
           git config --global user.name "github-actions"
