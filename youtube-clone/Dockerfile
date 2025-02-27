@@ -1,7 +1,7 @@
 # Use an official Node.js runtime as a parent image
 FROM node:17
 
-# Set the working directory in the container
+# Set the working directory in the containers
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
