@@ -189,7 +189,7 @@ jobs:
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
           for project in $CHANGED_PROJECTS; do
-            TOTAL=$(grep "Total:" scan_summary_${project}.md | | awk '{sum+=$1} END {print sum+0}')
+            TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $TOTAL
             UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $UNKNOWN
