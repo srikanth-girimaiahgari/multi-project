@@ -184,12 +184,13 @@ jobs:
            done  
       - name: Update README with Image Path & Scan Report
         run: |
+          set -x
           ls -lart
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
           echo "[![build-pipeline](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/srikanth-girimaiahgari/DevOps/actions/workflows/build-pipeline.yml)" > README.md
           for project in $CHANGED_PROJECTS; do
-            TOTAL=$(grep "Total:" scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
+            TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $TOTAL
             UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $UNKNOWN
@@ -199,7 +200,7 @@ jobs:
             echo $MEDIUM
             HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk -F'HIGH: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
             echo $HIGH
-            CRITICAL=$(grep "CRITICAL:" scan_summary_${project}.md | awk -F'CRITICAL: ' '{print $2}' | awk '{print $1}' | grep -o '[0-9]\+' | tr '\n' ',' | sed 's/,$//')
+            CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $CRITICAL
             echo "## $project Docker Image" >> README.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
