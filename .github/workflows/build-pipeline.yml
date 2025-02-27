@@ -192,13 +192,13 @@ jobs:
           for project in $CHANGED_PROJECTS; do
             TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $TOTAL
-            UNKNOWN=$(grep "UNKNOWN:" scan_summary_${project}.md | awk -F'UNKNOWN: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
+            UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $UNKNOWN
-            LOW=$(grep "LOW:" scan_summary_${project}.md | awk -F'LOW: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
+            LOW=$(grep -oP 'LOW:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $LOW
-            MEDIUM=$(grep "MEDIUM:" scan_summary_${project}.md | awk -F'MEDIUM: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
+            MEDIUM=$(grep -oP 'MEDIUM:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $MEDIUM
-            HIGH=$(grep "HIGH:" scan_summary_${project}.md | awk -F'HIGH: ' '{print $2}' | awk '{print $1}' | tr '\n' ' ' | sed 's/,$//')
+            HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $HIGH
             CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             echo $CRITICAL
