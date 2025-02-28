@@ -127,10 +127,10 @@ jobs:
             HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
             if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]; then
-              SCAN_RESULTS+="$project: ❌ High or Critical vulnerabilities found.\n"
+              SCAN_RESULTS+="$project: High or Critical vulnerabilities found.\n"
               grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md
             else
-              SCAN_RESULTS+="$project: ✅ No high or critical vulnerabilities.\n"
+              SCAN_RESULTS+="$project: No high or critical vulnerabilities.\n"
             fi
             ls -lart
           done
@@ -172,10 +172,11 @@ jobs:
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Tag and Push Docker Image
         run: |
-          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          echo "scan_reports:${{ needs.scan.outputs.scan_results }}"
+          # CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          scan_reports="${{ needs.scan.outputs.scan_results }}"
+          echo $scan_reports
           for project in $CHANGED_PROJECTS; do
-            if echo "${{ needs.scan.outputs.scan_results }}" | grep -q "$project: ❌"; then
+            if echo "${{ needs.scan.outputs.scan_results }}" | grep -q "vulnerabilities found"; then
               echo "⏩ Skipping push for $project due to vulnerabilities."
               continue
             fi
@@ -232,5 +233,4 @@ jobs:
           tag: v${{ steps.get_sha.outputs.short_sha }}
           name: "Release v${{ steps.get_sha.outputs.short_sha }}"
           body: |
-            Docker image [${{ env.repo }}/youtube-clone:${{ env.build_number }}v${{ steps.get_sha.outputs.short_sha }}](https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/$project/tags)
-            has been built and pushed.
+            Docker image has been built and pushed.
