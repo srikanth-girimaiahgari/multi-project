@@ -221,7 +221,6 @@ jobs:
           git commit -m "Update README with Docker Image & Scan Report" || echo "No changes to the commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
 
-          
       - name: Set short SHA
         id: get_sha
         run: echo "short_sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
@@ -233,5 +232,5 @@ jobs:
           tag: v${{ steps.get_sha.outputs.short_sha }}
           name: "Release v${{ steps.get_sha.outputs.short_sha }}"
           body: |
-            Docker image [${{ secrets.DOCKERHUB_USERNAME }}/release_c-app:v${{ steps.get_sha.outputs.short_sha }}](https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/release_c-app/tags)
+            Docker image [${{ env.repo }}/youtube-clone:${{ env.build_number }}v${{ steps.get_sha.outputs.short_sha }}](https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/$project/tags)
             has been built and pushed.
