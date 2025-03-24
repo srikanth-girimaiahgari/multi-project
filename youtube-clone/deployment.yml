@@ -16,7 +16,7 @@ spec:
         - name: my-app
           image: aakibkhan1212/youtube-clone:latest
           ports:
-            - containerPort: 3000  # Your Node.js application should listen on port 3000
+            - containerPort: 3000  # Your Node.js application should listen on port 30000
 
 ---
 
