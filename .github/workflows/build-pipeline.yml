@@ -102,8 +102,8 @@ jobs:
       - name: Install Trivy Scanner
         run: |
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.deb
-          sudo dpkg -i trivy_0.59.1_Linux-64bit.deb
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.62.1_Linux-64bit.deb
       
       - name: Debug show detected changed projects
         run: |
@@ -121,7 +121,7 @@ jobs:
           fi
           SCAN_RESULTS=""
           for project in $CHANGED_PROJECTS; do
-            echo "🛡️ Scanning $project"
+            echo "🛡️ Vulnerability Scanning $project"
             trivy image --format table --input $project.tar --output scan_${project}.md || true
             grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md > scan_summary_${project}.md || echo "No vulnerabilities found!" > scan_summary_${project}.md
             HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
