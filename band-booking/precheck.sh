@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Check if the container 'youtube-clone' is running
+# Check if the container 'youtube-clone' is running or not
 container_name="project2"
 container_status=$(podman ps -q -f name=$container_name)
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Check if the container 'youtube-clone' is running
+# Check if the container 'youtube-clone' is running or not
 container_name="youtube-clone"
 container_status=$(docker ps -q -f name=$container_name)
 
