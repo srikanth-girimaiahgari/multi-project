@@ -115,7 +115,6 @@ jobs:
       - name: Move updated Docker cache
         if: always()
         run: |
-          rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   scan:
