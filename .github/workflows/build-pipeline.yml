@@ -64,14 +64,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # ✅ Cache Docker layers
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-docker-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Project
         run: |
@@ -89,20 +83,19 @@ jobs:
             cd ..
           fi
 
-          cd ${{ matrix.project }}
-          echo "🐳 Building Docker Image for ${{ matrix.project }}"
-          docker build . \
-            --file Dockerfile \
-            --tag ${{ matrix.project }}:${{ env.build_number }} \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max
-            
-          cd ..
+      - name: Build Docker image with cache
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.project }}
+          file: ${{ matrix.project }}/Dockerfile
+          push: false
+          tags: ${{ matrix.project }}:${{ env.build_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-          echo "Converting the image into Tar file"
-          docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
+      - name: Save Docker image as tar
+        run: docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
 
-      # ✅ Upload artifacts separately for each matrix project
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -111,18 +104,6 @@ jobs:
 
       - name: List Docker images
         run: docker images
-
-      # ✅ Move updated cache
-      - name: Move updated Docker cache
-        if: always()
-        run: |
-          if [ -d /tmp/.buildx-cache-new ]; then
-            rm -rf /tmp/.buildx-cache
-            mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-          else
-            echo "No new docker cache generated, skipping move."
-          fi
-
 
   scan:
     needs: [detect-changes, build]
