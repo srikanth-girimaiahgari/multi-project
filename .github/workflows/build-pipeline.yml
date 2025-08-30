@@ -94,8 +94,9 @@ jobs:
           docker build . \
             --file Dockerfile \
             --tag ${{ matrix.project }}:${{ env.build_number }} \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max
+            
           cd ..
 
           echo "Converting the image into Tar file"
@@ -115,7 +116,13 @@ jobs:
       - name: Move updated Docker cache
         if: always()
         run: |
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          if [ -d /tmp/.buildx-cache-new ]; then
+            rm -rf /tmp/.buildx-cache
+            mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          else
+            echo "No new docker cache generated, skipping move."
+          fi
+
 
   scan:
     needs: [detect-changes, build]
