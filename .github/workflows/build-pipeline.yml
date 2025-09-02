@@ -142,6 +142,7 @@ jobs:
         with:
           path: .
       - name: Update SECURITY.md
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
          echo "Updating SECURITY.md with scan summaries"
           echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
@@ -171,6 +172,7 @@ jobs:
           git add SECURITY.md
           git commit -m "Update SECURITY.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
           BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          echo $BRANCH_NAME
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${BRANCH_NAME}
 
   release:
