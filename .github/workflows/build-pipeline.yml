@@ -70,7 +70,7 @@ jobs:
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
         with:
-          name: docker-images
+          name: docker-image-${{ matrix.project }}
           path: ${{ matrix.project }}.tar
 
   scan:
@@ -81,10 +81,10 @@ jobs:
         project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
     steps:
       - uses: actions/checkout@v4
-      - name: Download Docker Image
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: docker-images
+          name: docker-image-${{ matrix.project }}
           path: .
       - name: Install Trivy
         run: |
