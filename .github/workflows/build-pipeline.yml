@@ -39,6 +39,10 @@ jobs:
           echo "Changed Projects Matrix: $MATRIX_JSON"
           echo "changed_projects=$MATRIX_JSON" >> $GITHUB_OUTPUT
 
+          CHANGED_STR="${CHANGED[*]}"
+          echo "Changed Projects String: $CHANGED_STR"
+          echo "changed_projects_str=$CHANGED_STR" >> $GITHUB_OUTPUT
+
   build:
     needs: detect-changes
     if: needs.detect-changes.outputs.changed_projects != '[]'
@@ -148,9 +152,8 @@ jobs:
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
           set -x
-          CHANGED_PROJECTS="${{ matrix.project }}"
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects_str }}"
           echo "Changed Projects: $CHANGED_PROJECTS"
-          echo "${{ matrix.project }}"
           if [ -z "$CHANGED_PROJECTS" ]; then
             echo "No changed projects detected. Exiting."
             exit 0
