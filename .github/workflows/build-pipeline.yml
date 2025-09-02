@@ -170,7 +170,8 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add SECURITY.md
           git commit -m "Update SECURITY.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:{{ github.ref_name }}
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${BRANCH_NAME}
 
   release:
     needs: update-security-md
