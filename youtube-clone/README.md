@@ -2,7 +2,7 @@
 
 ![YouTube](https://i.ibb.co/4R5RkmW/Thumbnail-5.png)
 
-### Showcase your dev skills with practical experience and land the coding career of your dream
+### Showcase your dev skills with practical experience and land the coding career of your dreams
 💻 JS Mastery Pro - https://jsmastery.pro/youtube
 ✅ A special YOUTUBE discount code is automatically applied!
 
