@@ -50,6 +50,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build ${{ matrix.project }}
         run: |
+          set -ex
           if [ "${{ matrix.project }}" == "band-booking" ]; then
             cd ${{ matrix.project }}
             mvn clean package
@@ -59,10 +60,14 @@ jobs:
           docker build . -f Dockerfile -t ${{ matrix.project }}:${{ env.build_number }}
           docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
           cd ..
+      - name: List uploaded artifacts
+        run: |
+          echo "Uploaded artifact for ${{ matrix.project }}"
+          ls -lart ${{ matrix.project }}.tar
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ matrix.project }}
+          name: docker-images
           path: ${{ matrix.project }}.tar
 
   scan:
@@ -76,7 +81,7 @@ jobs:
       - name: Download Docker Image
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-${{ matrix.project }}
+          name: docker-images
           path: .
       - name: Install Trivy
         run: |
