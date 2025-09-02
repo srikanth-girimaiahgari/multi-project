@@ -156,17 +156,14 @@ jobs:
               CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
               echo "## $project Docker Image" >> SECURITY.md
               echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
-              cat >> SECURITY.md <<EOF
-          | Severity   | Count |
-          |------------|------:|
-          | 🔵 UNKNOWN  | ${UNKNOWN} |
-          | 🟢 LOW      | ${LOW} |
-          | 🟡 MEDIUM   | ${MEDIUM} |
-          | 🔴 HIGH     | ${HIGH} |
-          | 🚨 CRITICAL | ${CRITICAL} |
-          | **Total**   | ${TOTAL} |
-          EOF
-              echo "" >> SECURITY.md
+              printf "| Severity    | Count |\n" >> SECURITY.md
+              printf "|-------------|------:|\n" >> SECURITY.md
+              printf "| 🔵 UNKNOWN  | %s |\n" "${UNKNOWN}" >> SECURITY.md
+              printf "| 🟢 LOW      | %s |\n" "${LOW}" >> SECURITY.md
+              printf "| 🟡 MEDIUM   | %s |\n" "${MEDIUM}" >> SECURITY.md
+              printf "| 🔴 HIGH     | %s |\n" "${HIGH}" >> SECURITY.md
+              printf "| 🚨 CRITICAL | %s |\n" "${CRITICAL}" >> SECURITY.md
+              printf "| **Total**   | %s |\n\n" "${TOTAL}" >> SECURITY.md
             fi
           done
           git config --global user.name "github-actions"
