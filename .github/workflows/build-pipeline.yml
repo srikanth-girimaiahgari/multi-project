@@ -31,50 +31,25 @@ jobs:
           echo "Checking changes between ${{ github.event.before }} and ${{ github.sha }}"
           git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
-      - name: Detect Changed Projects
-        id: detect-changes
+      - name: Detect Changes in Projects
+        id: set-changed-projects
         run: |
-          set -e
-          PROJECTS="${{ env.PROJECTS }}"
-          echo "Monitored projects: $PROJECTS"
-          BEFORE_SHA="${{ github.event.before }}"
-          AFTER_SHA="${{ github.sha }}"
-
-          if [[ -z "$BEFORE_SHA" || -z "$AFTER_SHA" ]]; then
-            echo "Missing commit SHAs. Skipping change detection."
-            echo "changed_projects=[]" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          CHANGED_PROJECTS=()
+          CHANGED_PROJECTS=""
           for project in $PROJECTS; do
-            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "^$project/"; then
-              CHANGED_PROJECTS+=("$project")
+            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^$project/"; then
+              CHANGED_PROJECTS+="$project "
             fi
           done
-          echo "Changed Projects: $CHANGED_PROJECTS" 
+          echo "Changed Projects: $CHANGED_PROJECTS"
           echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
-          # Convert to valid JSON array
-          # JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s -c)
-          # echo "DEBUG: JSON='$JSON'"
-          # printf "changed_projects=%s\n" "$JSON" >> "$GITHUB_OUTPUT"
-          echo "changed_projects=$JSON" >> "$GITHUB_OUTPUT"
-          # echo 'changed_projects=["youtube-clone","band-booking"]' >> "$GITHUB_OUTPUT"
-          # echo "Changed projects: $JSON"
-          # echo "All projects: $PROJECTS"        
-          # if [ -z "$JSON" ] || [ "$JSON" = "[]" ]; then
-          #   echo "No changes detected in monitored projects."
-          # fi
-      # - name: Debug Output
-      #   run: |
-      #     echo "Raw output: '${{ steps.detect-changes.outputs.changed_projects }}'"
 
   build:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.changed_projects != '' && fromJson(needs.detect-changes.outputs.changed_projects).length > 0 }}
+    if: needs.detect-changes.outputs.changed_projects != ''
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [youtube-clone, band-booking] 
+        project: [youtube-clone, band-booking]
     runs-on: ubuntu-latest
     steps:
       - name: Echo project
