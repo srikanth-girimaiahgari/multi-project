@@ -58,14 +58,19 @@ jobs:
           if [ -z "$JSON" ] || [ "$JSON" = "[]" ]; then
             echo "No changes detected in monitored projects."
           fi
+      - name: Debug Output
+        run: |
+          echo "Raw output: '${{ steps.detect-changes.outputs.changed_projects }}'"
 
   build:
     needs: detect-changes
-    if: needs.detect-changes.outputs.changed_projects != ''
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: ${{ fromJSON(needs.detect-changes.outputs.changed_projects) }}
+        project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo project
+        run: echo "Building project: ${{ matrix.project }}"
     steps:
       - uses: actions/checkout@v4
 
