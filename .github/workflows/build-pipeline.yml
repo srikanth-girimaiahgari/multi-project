@@ -50,8 +50,8 @@ jobs:
             fi
           done
 
-          # Filter out empty entries and convert to JSON
-          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | grep -v '^$' | jq -R . | jq -s .)
+          # Convert to valid JSON array
+          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s .)
           echo "changed_projects=$(echo "$JSON" | jq -c)" >> "$GITHUB_OUTPUT"
           echo "Changed projects: $JSON"
           echo "All projects: $PROJECTS"        
