@@ -135,6 +135,9 @@ jobs:
   update-security-md:
     needs: [detect-changes, scan]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
     steps:
       - uses: actions/checkout@v4
       - name: Download All Scan Summaries
@@ -147,6 +150,7 @@ jobs:
           set -x
           CHANGED_PROJECTS="${{ fromJson(needs.detect-changes.outputs.changed_projects) }}"
           echo "Changed Projects: $CHANGED_PROJECTS"
+          echo "${{ matrix.project }}"
           if [ -z "$CHANGED_PROJECTS" ]; then
             echo "No changed projects detected. Exiting."
             exit 0
