@@ -157,15 +157,15 @@ jobs:
               echo "## $project Docker Image" >> SECURITY.md
               echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
               cat >> SECURITY.md <<EOF
-              | Severity   | Count |
-              |------------|------:|
-              | 🔵 UNKNOWN  | ${UNKNOWN} |
-              | 🟢 LOW      | ${LOW} |
-              | 🟡 MEDIUM   | ${MEDIUM} |
-              | 🔴 HIGH     | ${HIGH} |
-              | 🚨 CRITICAL | ${CRITICAL} |
-              | **Total**   | ${TOTAL} |
-              EOF
+          | Severity   | Count |
+          |------------|------:|
+          | 🔵 UNKNOWN  | ${UNKNOWN} |
+          | 🟢 LOW      | ${LOW} |
+          | 🟡 MEDIUM   | ${MEDIUM} |
+          | 🔴 HIGH     | ${HIGH} |
+          | 🚨 CRITICAL | ${CRITICAL} |
+          | **Total**   | ${TOTAL} |
+          EOF
               echo "" >> SECURITY.md
             fi
           done
