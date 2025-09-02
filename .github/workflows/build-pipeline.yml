@@ -34,14 +34,14 @@ jobs:
       - name: Detect Changes in Projects
         id: set-changed-projects
         run: |
-          CHANGED_PROJECTS=""
-          for project in $PROJECTS; do
+          CHANGED_PROJECTS=()
+          for project in youtube-clone band-booking; do
             if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^$project/"; then
-              CHANGED_PROJECTS+="$project "
+              CHANGED_PROJECTS+=("\"$project\"")
             fi
           done
-          echo "Changed Projects: $CHANGED_PROJECTS"
-          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
+          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s .)
+          echo "changed_projects=$JSON" >> $GITHUB_OUTPUT
 
   build:
     needs: detect-changes
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [youtube-clone, band-booking]
+        project: ${{ fromJSON(needs.detect-changes.outputs.changed_projects) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -101,7 +101,11 @@ jobs:
       - name: Download Docker Image Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: .
+          name: docker-image-${{ matrix.project }}
+          path: docker-image-${{ matrix.project }}
+      
+      - name: Debug Artifact Contents
+        run: ls -R .
 
       - name: Install Trivy Scanner
         run: |
@@ -167,7 +171,11 @@ jobs:
       - name: Download Artifacts (images + scans)
         uses: actions/download-artifact@v4
         with:
-          path: .
+          ame: docker-image-${{ matrix.project }}
+          path: docker-image-${{ matrix.project }}
+      
+      - name: Debug Artifact Contents
+        run: ls -R .
 
       - name: Load Docker Images
         run: |
@@ -203,11 +211,14 @@ jobs:
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
           done
 
-      - name: Update README with Image Paths & Scan Summary
+      - name: Update SECURITY.md with Scan Summary
         run: |
           set -e
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          echo "[![build-pipeline](https://github.com/${{ github.repository }}/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/${{ github.repository }}/actions/workflows/build-pipeline.yml)" > README.md
+          echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
+          echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
+          echo "" >> SECURITY.md
+
           for project in $CHANGED_PROJECTS; do
             TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
@@ -216,26 +227,25 @@ jobs:
             HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
 
-            echo "## $project Docker Image" >> README.md
-            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> README.md
-            cat >> README.md <<EOF
-            **🛡️ $project Vulnerability Scan**
-            | Severity   | Count |
-            |------------|------:|
-            | 🔵 UNKNOWN  | ${UNKNOWN} |
-            | 🟢 LOW      | ${LOW} |
-            | 🟡 MEDIUM   | ${MEDIUM} |
-            | 🔴 HIGH     | ${HIGH} |
-            | 🚨 CRITICAL | ${CRITICAL} |
-            | **Total**   | ${TOTAL} |
-            EOF
-            echo "" >> README.md
+            echo "## $project Docker Image" >> SECURITY.md
+            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
+            cat >> SECURITY.md <<EOF
+          | Severity   | Count |
+          |------------|------:|
+          | 🔵 UNKNOWN  | ${UNKNOWN} |
+          | 🟢 LOW      | ${LOW} |
+          | 🟡 MEDIUM   | ${MEDIUM} |
+          | 🔴 HIGH     | ${HIGH} |
+          | 🚨 CRITICAL | ${CRITICAL} |
+          | **Total**   | ${TOTAL} |
+          EOF
+            echo "" >> SECURITY.md
           done
 
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add README.md
-          git commit -m "Update README with image tags & scan summary" || echo "No changes to commit"
+          git add SECURITY.md
+          git commit -m "Update SECURITY.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
 
       - name: Set short SHA
@@ -245,7 +255,7 @@ jobs:
       - name: Create GitHub release with Docker image version
         uses: ncipollo/release-action@v1.15.0
         with:
-          tag: v${{ steps.get_sha.outputs.short_sha }}
+          tag: v${{ env.build_number }}-${{ steps.get_sha.outputs.short_sha }}
           name: "Release v${{ steps.get_sha.outputs.short_sha }}"
           body: |
             Docker images built (and pushed if clean) for: ${{ needs.detect-changes.outputs.changed_projects }}
