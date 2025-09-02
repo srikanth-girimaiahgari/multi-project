@@ -157,7 +157,6 @@ jobs:
             MEDIUM=$(grep -oP 'MEDIUM:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-
             echo "## $project Docker Image" >> SECURITY.md
             echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
             cat >> SECURITY.md <<EOF
