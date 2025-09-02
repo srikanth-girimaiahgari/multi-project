@@ -52,28 +52,29 @@ jobs:
               CHANGED_PROJECTS+=("$project")
             fi
           done
-
+          echo "Changed Projects: $CHANGED_PROJECTS" 
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
           # Convert to valid JSON array
-          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s -c)
-          echo "DEBUG: JSON='$JSON'"
+          # JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s -c)
+          # echo "DEBUG: JSON='$JSON'"
           # printf "changed_projects=%s\n" "$JSON" >> "$GITHUB_OUTPUT"
           echo "changed_projects=$JSON" >> "$GITHUB_OUTPUT"
           # echo 'changed_projects=["youtube-clone","band-booking"]' >> "$GITHUB_OUTPUT"
-          echo "Changed projects: $JSON"
-          echo "All projects: $PROJECTS"        
-          if [ -z "$JSON" ] || [ "$JSON" = "[]" ]; then
-            echo "No changes detected in monitored projects."
-          fi
-      - name: Debug Output
-        run: |
-          echo "Raw output: '${{ steps.detect-changes.outputs.changed_projects }}'"
+          # echo "Changed projects: $JSON"
+          # echo "All projects: $PROJECTS"        
+          # if [ -z "$JSON" ] || [ "$JSON" = "[]" ]; then
+          #   echo "No changes detected in monitored projects."
+          # fi
+      # - name: Debug Output
+      #   run: |
+      #     echo "Raw output: '${{ steps.detect-changes.outputs.changed_projects }}'"
 
   build:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.changed_projects != '' && fromJson(needs.detect-changes.outputs.changed_projects).length > 0 }}
     strategy:
       matrix:
-        project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
+        project: [youtube-clone, band-booking] 
     runs-on: ubuntu-latest
     steps:
       - name: Echo project
