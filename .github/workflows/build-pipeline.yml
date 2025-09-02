@@ -19,7 +19,7 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed_projects: ${{ steps.set-changed-projects.outputs.changed_projects }}
+      changed_projects: ${{ steps.detect-changes.outputs.changed_projects }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
