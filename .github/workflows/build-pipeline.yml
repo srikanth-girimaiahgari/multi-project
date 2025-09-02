@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Echo project
-        run: echo "Building project: ${{ matrix.project }}"
+        run: echo "Building project ${{ matrix.project }}"
     steps:
       - uses: actions/checkout@v4
 
