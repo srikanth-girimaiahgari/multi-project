@@ -57,13 +57,16 @@ jobs:
             cd ..
           fi
           cd ${{ matrix.project }}
+          echo "Building Docker image for ${{ matrix.project }}"
           docker build . -f Dockerfile -t ${{ matrix.project }}:${{ env.build_number }}
+          echo "Built Docker image for ${{ matrix.project }}:${{ env.build_number }}"
           docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
+          ls -lart
           cd ..
       - name: List uploaded artifacts
         run: |
           echo "Uploaded artifact for ${{ matrix.project }}"
-          ls -lart ${{ matrix.project }}.tar
+          ls -lart
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
         with:
