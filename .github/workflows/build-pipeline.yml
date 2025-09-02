@@ -141,31 +141,36 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: .
-      - name: Update SECURITY.md
+      - name: Update SECURITY.md with Scan Summary
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
-         echo "Updating SECURITY.md with scan summaries"
-          echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
+          set -e
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          # echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
           echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
-          for project in $PROJECTS; do
-            if [ -f scan_summary_${project}.md ]; then
-              TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              LOW=$(grep -oP 'LOW:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              MEDIUM=$(grep -oP 'MEDIUM:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-              echo "## $project Docker Image" >> SECURITY.md
-              echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
-              printf "| Severity    | Count |\n" >> SECURITY.md
-              printf "|-------------|------:|\n" >> SECURITY.md
-              printf "| 🔵 UNKNOWN  | %s |\n" "${UNKNOWN}" >> SECURITY.md
-              printf "| 🟢 LOW      | %s |\n" "${LOW}" >> SECURITY.md
-              printf "| 🟡 MEDIUM   | %s |\n" "${MEDIUM}" >> SECURITY.md
-              printf "| 🔴 HIGH     | %s |\n" "${HIGH}" >> SECURITY.md
-              printf "| 🚨 CRITICAL | %s |\n" "${CRITICAL}" >> SECURITY.md
-              printf "| **Total**   | %s |\n\n" "${TOTAL}" >> SECURITY.md
-            fi
+          echo "" >> SECURITY.md
+
+          for project in $CHANGED_PROJECTS; do
+            TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+            UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+            LOW=$(grep -oP 'LOW:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+            MEDIUM=$(grep -oP 'MEDIUM:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+            HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+            CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
+
+            echo "## $project Docker Image" >> SECURITY.md
+            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
+            cat >> SECURITY.md <<EOF
+          | Severity   | Count |
+          |------------|------:|
+          | 🔵 UNKNOWN  | ${UNKNOWN} |
+          | 🟢 LOW      | ${LOW} |
+          | 🟡 MEDIUM   | ${MEDIUM} |
+          | 🔴 HIGH     | ${HIGH} |
+          | 🚨 CRITICAL | ${CRITICAL} |
+          | **Total**   | ${TOTAL} |
+          EOF
+            echo "" >> SECURITY.md
           done
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
