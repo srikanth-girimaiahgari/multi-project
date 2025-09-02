@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed_projects: ${{ steps.set-changed-projects.outputs.changed_projects }}
+      changed_projects_str: ${{ steps.set-changed-projects.outputs.changed_projects_str }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
