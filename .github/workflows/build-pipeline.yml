@@ -144,13 +144,18 @@ jobs:
       - name: Update SECURITY.md with Scan Summary
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
-          set -ex
-          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          set -x
+          CHANGED_PROJECTS="${{ fromJson(needs.detect-changes.outputs.changed_projects) }}"
+          echo "Changed Projects: $CHANGED_PROJECTS"
+          if [ -z "$CHANGED_PROJECTS" ]; then
+            echo "No changed projects detected. Exiting."
+            exit 0
+          fi  
           echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
           echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
           echo "" >> SECURITY.md
 
-          for project in ${{ matrix.project }}; do
+          for project in $CHANGED_PROJECTS; do
             TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             LOW=$(grep -oP 'LOW:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
