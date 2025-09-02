@@ -65,7 +65,7 @@ jobs:
 
   build:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.changed_projects != '[]' && needs.detect-changes.outputs.changed_projects != '' }}
+    if: ${{ fromJson(needs.detect-changes.outputs.changed_projects).length > 0 }}
     strategy:
       matrix:
         project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
