@@ -60,6 +60,7 @@ jobs:
           echo "Building Docker image for ${{ matrix.project }}"
           docker build . -f Dockerfile -t ${{ matrix.project }}:${{ env.build_number }}
           echo "Built Docker image for ${{ matrix.project }}:${{ env.build_number }}"
+          cd ..
           docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
           ls -lart
       - name: List uploaded artifacts
