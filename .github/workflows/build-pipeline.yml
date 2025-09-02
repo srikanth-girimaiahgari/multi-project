@@ -144,9 +144,9 @@ jobs:
       - name: Update SECURITY.md with Scan Summary
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
-          set -e
+          set -ex
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          # echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
+          echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
           echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
           echo "" >> SECURITY.md
 
