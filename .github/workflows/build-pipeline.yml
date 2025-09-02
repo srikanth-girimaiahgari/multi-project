@@ -183,13 +183,13 @@ jobs:
             docker tag $project:${{ env.build_number }} ${{ env.repo }}/$project:${{ env.build_number }}
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
            done  
-      - name: Update SECURITY.md with Scan Summary
+      - name: Update SCAN_REPORT.md with Scan Summary
         run: |
           set -e
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
-          echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
-          echo "" >> SECURITY.md
+          echo "# 🛡️ Docker Image Scan Summary" > SCAN_REPORT.md
+          echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SCAN_REPORT.md
+          echo "" >> SCAN_REPORT.md
 
           for project in $CHANGED_PROJECTS; do
             TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
@@ -199,9 +199,9 @@ jobs:
             HIGH=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             CRITICAL=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
 
-            echo "## $project Docker Image" >> SECURITY.md
-            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SECURITY.md
-            cat >> SECURITY.md <<EOF
+            echo "## $project Docker Image" >> SCAN_REPORT.md
+            echo "Image: \`${{ env.repo }}/$project:${{ env.build_number }}\`" >> SCAN_REPORT.md
+            cat >> SCAN_REPORT.md <<EOF
           | Severity   | Count |
           |------------|------:|
           | 🔵 UNKNOWN  | ${UNKNOWN} |
@@ -211,13 +211,13 @@ jobs:
           | 🚨 CRITICAL | ${CRITICAL} |
           | **Total**   | ${TOTAL} |
           EOF
-            echo "" >> SECURITY.md
+            echo "" >> SCAN_REPORT.md
           done
 
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add SECURITY.md
-          git commit -m "Update SECURITY.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
+          git add SCAN_REPORT.md
+          git commit -m "Update SCAN_REPORT.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
 
       - name: Set short SHA
