@@ -148,7 +148,7 @@ jobs:
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/release/'))
         run: |
           set -x
-          CHANGED_PROJECTS="${{ fromJson(needs.detect-changes.outputs.changed_projects) }}"
+          CHANGED_PROJECTS="${{ matrix.project }}"
           echo "Changed Projects: $CHANGED_PROJECTS"
           echo "${{ matrix.project }}"
           if [ -z "$CHANGED_PROJECTS" ]; then
