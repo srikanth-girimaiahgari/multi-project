@@ -5,13 +5,17 @@ permissions:
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 env:
   repo: sr79979
+  image_name1: youtube-clone
+  image_name2: band-booking
   build_number: ${{ github.run_number }}
   PROJECTS: "youtube-clone band-booking"
 
@@ -19,24 +23,24 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed_projects: ${{ steps.detect-changes.outputs.changed_projects }}
+      changed_projects: ${{ steps.set-changed-projects.outputs.changed_projects }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
+          fetch-depth: 0  # Ensures full history is available
+      
       - name: Debug - Show Git Diff
         run: |
           echo "Checking changes between ${{ github.event.before }} and ${{ github.sha }}"
           git diff --name-only ${{ github.event.before }} ${{ github.sha }}
-
+      
       - name: Detect Changes in Projects
         id: set-changed-projects
         run: |
           CHANGED_PROJECTS=""
           for project in $PROJECTS; do
-            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^$project/"; then
+            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "^$project/"; then
               CHANGED_PROJECTS+="$project "
             fi
           done
@@ -47,176 +51,138 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.changed_projects != ''
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: [youtube-clone, band-booking]
     steps:
-      - name: Echo project
-        run: echo "Building project ${{ matrix.project }}"
-
-      - name: Checkout Repository
-        if: contains(needs.detect-changes.outputs.changed_projects, matrix.project)
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Maven build (only for band-booking)
-        if: matrix.project == 'band-booking' && contains(needs.detect-changes.outputs.changed_projects, 'band-booking')
+      - uses: actions/checkout@v4
+      - name: Build
         run: |
-          cd band-booking
-          mvn clean package
-          cd -
-
-      - name: Build Docker image (no cache)
-        if: contains(needs.detect-changes.outputs.changed_projects, matrix.project)
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.project }}
-          file: ${{ matrix.project }}/Dockerfile
-          push: false         # keep false; we'll push in the 'push' job after scanning
-          load: true          # load into local daemon so docker save works
-          tags: ${{ matrix.project }}:${{ env.build_number }}
-
-      - name: Save Docker image as tar
-        if: contains(needs.detect-changes.outputs.changed_projects, matrix.project)
-        run: docker save ${{ matrix.project }}:${{ env.build_number }} -o ${{ matrix.project }}.tar
+          set -x
+          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
+          for project in $CHANGED_PROJECTS; do
+            echo "🔹 Processing $project"
+            if [ "$project" == "band-booking" ]; then
+              echo "🔧 Running Maven Build for $project"
+              cd $project
+              mvn clean package
+              cd ..
+            fi
+            cd $project
+            echo "🐳 Building Docker Image for $project"
+            docker build . --file Dockerfile --tag $project:${{ env.build_number }}
+            cd ..
+            echo "Converting the image into Tar file"
+            docker save $project:${{ env.build_number }} -o $project.tar
+            ls -lart
+          done
+                  
+          echo "Changed Projects: $CHANGED_PROJECTS"
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
 
       - name: Upload Docker Image Artifact
-        if: contains(needs.detect-changes.outputs.changed_projects, matrix.project)
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ matrix.project }}
-          path: ${{ matrix.project }}.tar
-
-      - name: List Docker images
-        if: contains(needs.detect-changes.outputs.changed_projects, matrix.project)
-        run: docker images
+          name: docker-image
+          path: "*.tar"
+      - name: Check files
+        run: |
+          ls -lart
+          docker images
 
   scan:
     needs: [detect-changes, build]
-    if: needs.detect-changes.outputs.changed_projects != ''
     runs-on: ubuntu-latest
-    outputs:
-      scan_results: ${{ steps.collect.outputs.scan_results }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Download Docker Image Artifacts
+      - name: Download Docker Image Artifact
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-${{ matrix.project }}
-          path: docker-image-${{ matrix.project }}
-      
-      - name: Debug Artifact Contents
-        run: ls -R .
-
+          name: docker-image
+          path: .
       - name: Install Trivy Scanner
         run: |
-          sudo apt-get update -y
           sudo apt-get install -y wget
           wget https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
           sudo dpkg -i trivy_0.62.1_Linux-64bit.deb
-
+      
+      - name: Debug show detected changed projects
+        run: |
+          echo "Received changed projects: ${{ needs.detect-changes.outputs.changed_projects }}"
       - name: Scan Docker Image for Vulnerabilities
-        id: scan
+        id: scan-results
         run: |
-          set -e
+          set -x
+          echo "detect:${{ needs.detect-changes.outputs.changed_projects }}"
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          for project in $CHANGED_PROJECTS; do
-            echo "🛡️ Scanning $project …"
-            TAR_PATH="docker-image-${project}/${project}.tar"
-            if [ ! -f "$TAR_PATH" ]; then
-              echo "Tar not found for $project at $TAR_PATH"; continue
-            fi
-            trivy image --format table --input "$TAR_PATH" --output "scan_${project}.md" || true
-
-            # Create a compact summary with all severities
-            {
-              echo "Summary for $project"
-              grep -E 'Total:|UNKNOWN:|LOW:|MEDIUM:|HIGH:|CRITICAL:' "scan_${project}.md" || true
-            } > "scan_summary_${project}.md"
-          done
-
-      - name: Collect scan results (for gating push)
-        id: collect
-        run: |
-          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          echo "changed_projects=$CHANGED_PROJECTS" >> $GITHUB_ENV
+          if [ -z "$CHANGED_PROJECTS" ]; then
+            echo "No Changed projects detected."
+            exit 0
+          fi
           SCAN_RESULTS=""
           for project in $CHANGED_PROJECTS; do
-            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-            CRIT_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-            if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRIT_COUNT" -gt 0 ]; then
+            echo "🛡️ Vulnerability Scanning $project"
+            trivy image --format table --input $project.tar --output scan_${project}.md || true
+            grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md > scan_summary_${project}.md || echo "No vulnerabilities found!" > scan_summary_${project}.md
+            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
+            CRITICAL_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{sum+=$1} END {print sum+0}')
+            if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]; then
               SCAN_RESULTS+="$project: High or Critical vulnerabilities found.\n"
+              grep -E 'Total:|HIGH:|CRITICAL:' scan_${project}.md
             else
               SCAN_RESULTS+="$project: No high or critical vulnerabilities.\n"
             fi
+            ls -lart
           done
-          echo -e "$SCAN_RESULTS"
-          SCAN_RESULTS_ESCAPED=$(printf "%s" "$SCAN_RESULTS" | sed ':a;N;$!ba;s/\n/;/g')
-          echo "scan_results=$SCAN_RESULTS_ESCAPED" >> $GITHUB_OUTPUT
-
-      - name: Upload Scan Reports
+          cat 
+          ls -lart
+          echo "SCAN RESULTS: $SCAN_RESULTS"
+          echo "scan_results=$SCAN_RESULTS" >> $GITHUB_OUTPUT
+      - name: Upload Scan Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: security-scan
-          path: |
-            scan_*.md
-            scan_summary_*.md
+          path: "scan_*.md"
 
   push:
     needs: [detect-changes, scan]
-    if: needs.detect-changes.outputs.changed_projects != ''
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Download Artifacts (images + scans)
+      - name: Download Docker Image Artifact
         uses: actions/download-artifact@v4
         with:
-          ame: docker-image-${{ matrix.project }}
-          path: docker-image-${{ matrix.project }}
-      
-      - name: Debug Artifact Contents
-        run: ls -R .
-
-      - name: Load Docker Images
-        run: |
-          CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
-          for project in $CHANGED_PROJECTS; do
-            TAR_PATH="docker-image-${project}/${project}.tar"
-            if [ -f "$TAR_PATH" ]; then
-              docker load -i "$TAR_PATH"
-            else
-              echo "No tar found for $project at $TAR_PATH, skipping load."
-            fi
-          done
-          docker images
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+          name: security-scan
+          path: .
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Tag and Push Docker Images (skip if High/Critical)
+          name: docker-image
+          path: .
+      - name: Load Docker Image
         run: |
-          set -e
           CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
           for project in $CHANGED_PROJECTS; do
-            HIGH_COUNT=$(grep -oP 'HIGH:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-            CRIT_COUNT=$(grep -oP 'CRITICAL:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
-            if [ "$HIGH_COUNT" -gt 0 ] || [ "$CRIT_COUNT" -gt 0 ]; then
-              echo "⏩ Skipping push for $project due to High/Critical vulnerabilities."
+            docker load -i $project.tar
+            docker images
+          done
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - name: Tag and Push Docker Image
+        run: |
+          # CHANGED_PROJECTS="${{ needs.detect-changes.outputs.changed_projects }}"
+          scan_reports="${{ needs.scan.outputs.scan_results }}"
+          echo $scan_reports
+          for project in $CHANGED_PROJECTS; do
+            if echo "${{ needs.scan.outputs.scan_results }}" | grep -q "vulnerabilities found"; then
+              echo "⏩ Skipping push for $project due to vulnerabilities."
               continue
             fi
             docker tag $project:${{ env.build_number }} ${{ env.repo }}/$project:${{ env.build_number }}
             docker push ${{ env.repo }}/$project:${{ env.build_number }}
-          done
-
+           done  
       - name: Update SECURITY.md with Scan Summary
         run: |
           set -e
@@ -259,9 +225,10 @@ jobs:
         run: echo "short_sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub release with Docker image version
+        id: create_release
         uses: ncipollo/release-action@v1.15.0
         with:
           tag: v${{ env.build_number }}-${{ steps.get_sha.outputs.short_sha }}
           name: "Release v${{ steps.get_sha.outputs.short_sha }}"
           body: |
-            Docker images built (and pushed if clean) for: ${{ needs.detect-changes.outputs.changed_projects }}
+            Docker image has been built and pushed.
