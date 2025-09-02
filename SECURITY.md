@@ -1,8 +1,8 @@
 # 🛡️ Docker Image Scan Summary
-**Build #131 - 2025-09-02 17:23:46 UTC**
+**Build #132 - 2025-09-02 17:33:56 UTC**
 
 ## Array Docker Image
-Image: `sr79979/Array:131`
+Image: `sr79979/Array:132`
 | Severity   | Count |
 |------------|------:|
 | 🔵 UNKNOWN  | 0 |
