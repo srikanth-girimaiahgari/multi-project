@@ -34,6 +34,9 @@ jobs:
       - name: Detect Changed Projects
         id: detect-changes
         run: |
+          set -e
+          PROJECTS="${{ env.PROJECTS }}"
+          echo "Monitored projects: $PROJECTS"
           BEFORE_SHA="${{ github.event.before }}"
           AFTER_SHA="${{ github.sha }}"
 
@@ -44,7 +47,7 @@ jobs:
           fi
 
           CHANGED_PROJECTS=()
-          for project in youtube-clone band-booking; do
+          for project in $PROJECTS; do
             if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "^$project/"; then
               CHANGED_PROJECTS+=("$project")
             fi
@@ -65,7 +68,7 @@ jobs:
 
   build:
     needs: detect-changes
-    if: ${{ fromJson(needs.detect-changes.outputs.changed_projects).length > 0 }}
+    if: ${{ needs.detect-changes.outputs.changed_projects != '' && fromJson(needs.detect-changes.outputs.changed_projects).length > 0 }}
     strategy:
       matrix:
         project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}

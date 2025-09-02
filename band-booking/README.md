@@ -16,5 +16,4 @@ This project is a web application for booking music bands. It allows users to vi
 2. Navigate to the project directory.
 3. Build the project using Maven:
    ```bash
-   mvn clean package
-   
+   mvn clean packages
