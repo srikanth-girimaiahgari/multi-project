@@ -52,6 +52,7 @@ jobs:
 
           # Convert to valid JSON array
           JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s -c)
+          echo "DEBUG: JSON='$JSON'"
           printf "changed_projects=%s\n" "$JSON" >> "$GITHUB_OUTPUT"
           echo "Changed projects: $JSON"
           echo "All projects: $PROJECTS"        
