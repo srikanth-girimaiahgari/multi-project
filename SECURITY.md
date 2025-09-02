@@ -1,8 +1,8 @@
 # 🛡️ Docker Image Scan Summary
-**Build #132 - 2025-09-02 17:33:56 UTC**
+**Build #133 - 2025-09-02 17:39:44 UTC**
 
-## Array Docker Image
-Image: `sr79979/Array:132`
+## band-booking Docker Image
+Image: `sr79979/band-booking:133`
 | Severity   | Count |
 |------------|------:|
 | 🔵 UNKNOWN  | 0 |
