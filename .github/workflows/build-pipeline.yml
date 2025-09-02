@@ -150,7 +150,7 @@ jobs:
           echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
           echo "" >> SECURITY.md
 
-          for project in $CHANGED_PROJECTS; do
+          for project in ${{ matrix.project }}; do
             TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             UNKNOWN=$(grep -oP 'UNKNOWN:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
             LOW=$(grep -oP 'LOW:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
