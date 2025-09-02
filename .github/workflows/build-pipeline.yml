@@ -34,14 +34,23 @@ jobs:
       - name: Detect Changes in Projects
         id: set-changed-projects
         run: |
-          CHANGED_PROJECTS=()
+          CCHANGED_PROJECTS=()
           for project in youtube-clone band-booking; do
-            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^$project/"; then
-              CHANGED_PROJECTS+=("\"$project\"")
+            if git diff --name-only "$GITHUB_EVENT_BEFORE" "$GITHUB_SHA" | grep -q "^$project/"; then
+              CHANGED_PROJECTS+=("$project")
             fi
           done
+
+          # Convert to JSON array
           JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s .)
-          echo "changed_projects=$JSON" >> $GITHUB_OUTPUT
+
+          # Output as a single line with no indentation
+          echo "changed_projects=$JSON" >> "$GITHUB_OUTPUT"
+          echo "Changed projects: $JSON"
+          echo "All projects: $PROJECTS"        
+          if [ -z "$JSON" ] || [ "$JSON" = "[]" ]; then
+            echo "No changes detected in monitored projects."
+          fi
 
   build:
     needs: detect-changes
