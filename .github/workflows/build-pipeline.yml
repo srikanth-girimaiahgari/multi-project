@@ -135,9 +135,9 @@ jobs:
   update-security-md:
     needs: [detect-changes, scan]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
+    # strategy:
+    #   matrix:
+    #     project: ${{ fromJson(needs.detect-changes.outputs.changed_projects) }}
     steps:
       - uses: actions/checkout@v4
       - name: Download All Scan Summaries
