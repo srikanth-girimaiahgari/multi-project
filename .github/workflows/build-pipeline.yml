@@ -34,7 +34,7 @@ jobs:
       - name: Detect Changes in Projects
         id: set-changed-projects
         run: |
-          CCHANGED_PROJECTS=()
+          CHANGED_PROJECTS=()
           for project in youtube-clone band-booking; do
             if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^$project/"; then
               CHANGED_PROJECTS+=("\"$project\"")
