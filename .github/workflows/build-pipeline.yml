@@ -31,20 +31,27 @@ jobs:
           echo "Checking changes between ${{ github.event.before }} and ${{ github.sha }}"
           git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
-      - name: Detect Changes in Projects
-        id: set-changed-projects
+      - name: Detect Changed Projects
+        id: detect-changes
         run: |
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.sha }}"
+
+          if [[ -z "$BEFORE_SHA" || -z "$AFTER_SHA" ]]; then
+            echo "Missing commit SHAs. Skipping change detection."
+            echo "changed_projects=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           CHANGED_PROJECTS=()
           for project in youtube-clone band-booking; do
-            if git diff --name-only "$GITHUB_EVENT_BEFORE" "$GITHUB_SHA" | grep -q "^$project/"; then
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "^$project/"; then
               CHANGED_PROJECTS+=("$project")
             fi
           done
 
-          # Convert to JSON array
-          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | jq -R . | jq -s .)
-
-          # Output as a single line with no indentation
+          # Filter out empty entries and convert to JSON
+          JSON=$(printf '%s\n' "${CHANGED_PROJECTS[@]}" | grep -v '^$' | jq -R . | jq -s .)
           echo "changed_projects=$JSON" >> "$GITHUB_OUTPUT"
           echo "Changed projects: $JSON"
           echo "All projects: $PROJECTS"        
