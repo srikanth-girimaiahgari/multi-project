@@ -18,4 +18,3 @@ This project is a web application for booking music bands. It allows users to vi
    ```bash
    mvn clean package
    
-   
