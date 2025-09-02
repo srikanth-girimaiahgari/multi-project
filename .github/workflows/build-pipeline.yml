@@ -143,7 +143,9 @@ jobs:
           path: .
       - name: Update SECURITY.md
         run: |
-          echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")** # 🛡️ Docker Image Scan Summary" >> SECURITY.md
+         echo "Updating SECURITY.md with scan summaries"
+          echo "# 🛡️ Docker Image Scan Summary" > SECURITY.md
+          echo "**Build #${{ env.build_number }} - $(date -u +"%Y-%m-%d %H:%M:%S UTC")**" >> SECURITY.md
           for project in $PROJECTS; do
             if [ -f scan_summary_${project}.md ]; then
               TOTAL=$(grep -oP 'Total:\s+\K\d+' scan_summary_${project}.md | awk '{s+=$1} END {print s+0}')
@@ -171,7 +173,7 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add SECURITY.md
           git commit -m "Update SECURITY.md with scan summary for build #${{ env.build_number }}" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:{{ github.ref_name }}
 
   release:
     needs: update-security-md
