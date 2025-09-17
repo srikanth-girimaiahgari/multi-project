@@ -10,6 +10,7 @@ phases:
   install:
     runtime-versions:
       java: 17
+      maven: 3.9
     commands:
       - echo "Installing Trivy via binary..."
       - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
@@ -34,20 +35,8 @@ phases:
   build:
     commands:
       - echo "Building Docker images..."
-      - |
-        bash -c '
-        changed_projects="band-booking"
-        for project in $changed_projects; do
-          echo "Processing $project";
-          if [ "$project" == "band-booking" ]; then
-            cd $project && mvn clean package && cd ..;
-          fi
-          cd $project;
-          # docker build -f Dockerfile -t $project:$BUILD_NUMBER .;
-          # docker save $project:$BUILD_NUMBER -o ../$project.tar;
-          cd ..;
-        done
-        '
+      - cd band-booking
+      - mvn clean package
   # post_build:
   #   commands:
   #     - echo "Scanning Docker images..."
