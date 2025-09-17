@@ -50,7 +50,7 @@ phases:
     commands:
       - echo "Scanning Docker images..."
       - mkdir -p scan_reports
-      - for project in $(cat changed_projects.txt); do
+      - for project in $changed_projects; do
           trivy image --format table --input $project.tar --output scan_reports/scan_$project.md || true;
           grep -E 'Total:|HIGH:|CRITICAL:' scan_reports/scan_$project.md > scan_reports/scan_summary_$project.md || echo "No vulnerabilities found!" > scan_reports/scan_summary_$project.md;
         done
