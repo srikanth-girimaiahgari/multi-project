@@ -11,9 +11,9 @@ phases:
     runtime-versions:
       java: 17
     commands:
-      - echo "Installing Trivy..."
-      - wget https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
-      - sudo dpkg -i trivy_0.62.1_Linux-64bit.deb
+      - echo "Installing Trivy via binary..."
+      - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - trivy --version
 
   pre_build:
     commands:
