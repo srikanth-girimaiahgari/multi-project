@@ -34,8 +34,10 @@ phases:
   build:
     commands:
       - echo "Building Docker images..."
-      - changed_projects="youtube-clone band-booking"
-      - for project in $changed_projects; do
+      - |
+        bash -c '
+        changed_projects="youtube-clone band-booking"
+        for project in $changed_projects; do
           echo "Processing $project";
           if [ "$project" == "band-booking" ]; then
             cd $project && mvn clean package && cd ..;
@@ -45,7 +47,7 @@ phases:
           docker save $project:$BUILD_NUMBER -o ../$project.tar;
           cd ..;
         done
-
+        '
   post_build:
     commands:
       - echo "Scanning Docker images..."
