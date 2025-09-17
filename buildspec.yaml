@@ -1,0 +1,62 @@
+version: 0.2
+
+env:
+  variables:
+    REPO: "sr79979"
+    PROJECTS: "youtube-clone band-booking"
+    BUILD_NUMBER: "latest"  # You can override this via CodeBuild environment variables
+
+phases:
+  install:
+    runtime-versions:
+      java: 17
+    commands:
+      - echo "Installing Trivy..."
+      - wget https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
+      - sudo dpkg -i trivy_0.62.1_Linux-64bit.deb
+
+  pre_build:
+    commands:
+      - echo "Detecting changed projects..."
+      - git fetch --unshallow || true
+      - |
+        bash -c '
+        CHANGED=()
+        for project in $PROJECTS; do
+          if git diff --name-only origin/main HEAD | grep "^$project/"; then
+            CHANGED+=("$project")
+          fi
+        done
+        echo "Changed projects: ${CHANGED[*]}"
+        echo "${CHANGED[*]}" > changed_projects.txt
+        '
+        
+  build:
+    commands:
+      - echo "Building Docker images..."
+      - for project in $(cat changed_projects.txt); do
+          echo "Processing $project";
+          if [ "$project" == "band-booking" ]; then
+            cd $project && mvn clean package && cd ..;
+          fi
+          cd $project;
+          docker build -f Dockerfile -t $project:$BUILD_NUMBER .;
+          docker save $project:$BUILD_NUMBER -o ../$project.tar;
+          cd ..;
+        done
+
+  post_build:
+    commands:
+      - echo "Scanning Docker images..."
+      - mkdir -p scan_reports
+      - for project in $(cat changed_projects.txt); do
+          trivy image --format table --input $project.tar --output scan_reports/scan_$project.md || true;
+          grep -E 'Total:|HIGH:|CRITICAL:' scan_reports/scan_$project.md > scan_reports/scan_summary_$project.md || echo "No vulnerabilities found!" > scan_reports/scan_summary_$project.md;
+        done
+
+artifacts:
+  files:
+    - '*.tar'
+    - 'scan_reports/*'
+    - 'changed_projects.txt'
+  discard-paths: no
