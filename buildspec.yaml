@@ -21,7 +21,7 @@ phases:
       - echo "📦 Installing Maven..."
       - curl -fsSL https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz -o maven.tar.gz
       - tar -xzf maven.tar.gz
-      - mv apache-maven-3.9.6 /opt/maven
+      - mv apache-maven-3.9.11 /opt/maven
       - export MAVEN_HOME=/opt/maven
       - export PATH=$MAVEN_HOME/bin:$PATH
       - mvn -v
