@@ -19,7 +19,7 @@ phases:
       - echo "JAVA_HOME is set to $JAVA_HOME"
 
       - echo "📦 Installing Maven..."
-      - curl -fsSL https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o maven.tar.gz
+      - curl -fsSL https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz -o maven.tar.gz
       - tar -xzf maven.tar.gz
       - mv apache-maven-3.9.6 /opt/maven
       - export MAVEN_HOME=/opt/maven
